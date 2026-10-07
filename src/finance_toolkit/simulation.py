@@ -55,7 +55,9 @@ def _correlation_factor(
     if np.min(eigenvalues) < -tolerance:
         raise ValueError("correlation must be positive semidefinite")
     # Eigensquare root also supports singular correlations, unlike Cholesky.
-    return eigenvectors * np.sqrt(np.maximum(eigenvalues, 0.0))
+    return np.asarray(
+        eigenvectors * np.sqrt(np.maximum(eigenvalues, 0.0)), dtype=np.float64
+    )
 
 
 def simulate_gbm(
