@@ -24,5 +24,6 @@ TDD-Nachweis pro ausführbarem Verhalten: Test zunächst wegen fehlendem Verhalt
 rot, minimale Implementierung grün, Refactoring mit erneuter Prüfung.
 Exakte GBM-Schritte benötigen keinen Euler-Konvergenznachweis; statistische
 Konvergenz und Portfolio-Rastergrenzen müssen dennoch geprüft werden.
-Konfigurierte Qualitätsgates werden mit #2 eingerichtet und gelten vorher nicht
-als bestanden. Für die aktuelle Dokumentation sind Link- und Konsistenzprüfungen ausreichend.
+Die Paketbasis konfiguriert pytest, ruff und mypy sowie die CI-Matrix für
+Python 3.11–3.13. Installationstests prüfen Versionsmetadaten und den ausgelieferten
+Typing-Marker auch im gebauten Wheel. Numerische Verifikation folgt erst in M1.
