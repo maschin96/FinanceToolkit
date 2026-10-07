@@ -33,9 +33,11 @@ jobs:
           version: '0.11.23'
           enable-cache: false
       - name: Install locked environment
-        run: uv sync --locked --python '${{ matrix.python-version }}'
+        run: uv sync --locked --extra plots --python '${{ matrix.python-version }}'
       - name: Tests
         run: uv run --no-sync python -m pytest
+      - name: Offline examples and diagrams
+        run: uv run --no-sync python -m finance_toolkit.examples --paths 100 --output /tmp/finance-demo --plot
       - name: Lint
         run: uv run --no-sync python -m ruff check .
       - name: Formatting
@@ -50,7 +52,7 @@ jobs:
         shell: bash
         run: |
           uv venv /tmp/finance-wheel --python '${{ matrix.python-version }}'
-          uv export --locked --no-emit-project --output-file /tmp/finance-runtime.txt
+          uv export --locked --all-extras --no-emit-project --output-file /tmp/finance-runtime.txt
           uv pip install --python /tmp/finance-wheel/bin/python --require-hashes -r /tmp/finance-runtime.txt
           uv pip install --python /tmp/finance-wheel/bin/python --no-deps dist/*.whl
           cp -R tests /tmp/finance-wheel-tests

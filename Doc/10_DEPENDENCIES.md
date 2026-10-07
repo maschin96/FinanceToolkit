@@ -12,6 +12,7 @@ Die Toolbox selbst erhält damit keine Open-Source-Lizenz.
 | ruff | Lint und Formatierung | [MIT](https://github.com/astral-sh/ruff/blob/main/LICENSE) |
 | mypy | Statische Typprüfung | [MIT](https://github.com/python/mypy/blob/master/LICENSE) |
 | hatchling 1.27.0 | Isolierter Paketbuild | [MIT](https://github.com/pypa/hatch/blob/master/LICENSE.txt) |
+| Matplotlib (optional plots extra) | Diagramm-Adapter | [PSF-basierte BSD-kompatible Lizenz](https://matplotlib.org/stable/project/license.html) |
 | uv 0.11.23 | Installation und Lockverwaltung | [MIT oder Apache-2.0](https://github.com/astral-sh/uv/blob/main/LICENSE-MIT) |
 
 Lizenzangaben der installierten direkten Abhängigkeiten wurden in den
