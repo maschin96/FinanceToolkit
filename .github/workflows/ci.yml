@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: false
+      - name: Install locked environment
+        run: uv sync --locked --python '${{ matrix.python-version }}'
+      - name: Tests
+        run: uv run --no-sync python -m pytest
+      - name: Lint
+        run: uv run --no-sync python -m ruff check .
+      - name: Formatting
+        run: uv run --no-sync python -m ruff format --check .
+      - name: Types
+        run: uv run --no-sync python -m mypy src/finance_toolkit
+      - name: Whitespace
+        run: git diff --check
+      - name: Build distribution
+        run: uv build
+      - name: Install wheel in fresh environment and test outside source tree
+        shell: bash
+        run: |
+          uv venv /tmp/finance-wheel --python '${{ matrix.python-version }}'
+          uv export --locked --no-emit-project --output-file /tmp/finance-runtime.txt
+          uv pip install --python /tmp/finance-wheel/bin/python --require-hashes -r /tmp/finance-runtime.txt
+          uv pip install --python /tmp/finance-wheel/bin/python --no-deps dist/*.whl
+          cp -R tests /tmp/finance-wheel-tests
+          cd /tmp
+          /tmp/finance-wheel/bin/python -m pytest finance-wheel-tests
