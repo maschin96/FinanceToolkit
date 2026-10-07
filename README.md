@@ -3,8 +3,8 @@
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
 festverzinslichen Anleihen und daraus zusammengesetzten Portfolios.
 
-**Stand:** Projektauftrag und GitHub-Backlog vorhanden. Numerische APIs, Installation,
-Beispiele und CI werden erst mit den folgenden Issues implementiert.
+**Stand:** Installierbare Paketbasis mit reproduzierbarer Entwicklungsumgebung und
+CI für Python 3.11–3.13. Numerische APIs und Beispiele folgen in M1.
 Das Repository ist privat; es gibt noch kein veröffentlichtes Python-Paket.
 
 ## Geplanter erster Funktionsumfang
@@ -28,8 +28,28 @@ Portfolio-Transaktionen.
 
 Zielplattform: Python 3.11–3.13. Paketstruktur: `src/finance_toolkit/`.
 NumPy und SciPy bilden den numerischen Kern; pytest, ruff und mypy die Prüfwerkzeuge.
-Die reproduzierbare Installation und CI sind Gegenstand von
-[Issue #2](https://github.com/maschin96/FinanceToolkit/issues/2) und noch nicht eingerichtet.
+Die Entwicklung verwendet uv 0.11.23 und die eingecheckte `uv.lock`.
+[uv installieren](https://docs.astral.sh/uv/getting-started/installation/), dann:
+
+```sh
+uv sync --locked --python 3.13
+uv run --no-sync python -m pytest
+uv run --no-sync python -m ruff check .
+uv run --no-sync python -m ruff format --check .
+uv run --no-sync python -m mypy src/finance_toolkit
+git diff --check
+```
+
+Alternativ nach `uv sync`: Umgebung aktivieren (`source .venv/bin/activate`) und
+Prüfungen mit `python -m ...` ausführen. Der Lock legt Paketversionen und
+Artefakt-Hashes fest; `--locked` verhindert unbemerkte Änderungen. Python-Patchversion
+und Plattform können variieren. CI prüft alle drei unterstützten Minorversionen.
+
+Paket bauen: `uv build`. Installation ohne Entwicklungswerkzeuge:
+`uv sync --locked --no-dev`. Das Paket stellt zunächst nur Versionsmetadaten bereit.
+CI testet auch das gebaute Wheel in einer frischen Umgebung außerhalb des Quellbaums.
+Dependency-Updates werden bewusst mit `uv lock --upgrade` vorgenommen und erneut
+in der vollständigen CI-Matrix geprüft. [Abhängigkeiten](Doc/10_DEPENDENCIES.md).
 
 [Roadmap und Issues](Doc/06_ROADMAP.md) · [Dokumentation](Doc/README.md) ·
 [Entwicklungsrichtlinien](AGENTS.md)
