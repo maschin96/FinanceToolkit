@@ -30,3 +30,10 @@ von Paket und Tests, nicht als unbelegte Liefertermine.
 
 Kalibrierung aus Marktdaten, stochastische Zinsen, amerikanische Optionen,
 Greeks, Backtesting, Optimierung, FX und Oberfläche werden bei Bedarf separat geplant.
+
+## Abnahmestand M1
+
+M0 ist stabil in main freigegeben (PR #11). Alle M1-Funktions-Issues #3–#8
+sind geprüft und in codex/milestone-m1 integriert (PRs #12–#17).
+Issue #9 bleibt bis main-Zielcommit-CI, Tag und privaten Release-Artefakten offen.
+Die Release-Integration umfasst ausschließlich den vollständigen M1-Pflichtumfang.

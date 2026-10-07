@@ -63,3 +63,18 @@ mypy verwendet den laufenden Python-Interpreter statt einer pauschalen 3.11-
 Einstellung: NumPy-Versionen für neuere Python-Versionen liefern neuere Stub-Syntax.
 Die komplette CI-Matrix prüft Quellcode und Abhängigkeiten für jeden unterstützten
 Interpreter; die Typprüfung bleibt strikt.
+
+## ADR-005 – M1-Abnahme und Analysekonventionen (2026-10-07)
+
+Optionsquotes je Underlying-Einheit; Multiplikatoren auf Vertragsebene. Coupons
+und Tilgung getrennt; Zahlungen vor Trades und ex-Zahlungsbewertung. Ein Käufer
+am Kupontermin erhält keinen vorherigen Kupon. Verlust wird vor VaR-/ES-Berechnung
+auf Gesamtportfolioebene aggregiert. ES nutzt fraktionale empirische Tail-Masse;
+VaR lineare Quantile. Nichtpositive Kapitalbasis liefert keine relative Rendite,
+aber weiterhin absolute P&L/Risiken. Aktien-Cashdividenden und Außenkapitalflüsse
+sind in M1 ausgeschlossen. Details in Doc/12_OPTIONS.md bis Doc/15_ANALYTICS.md.
+
+Diagramme sind ein optionaler Matplotlib-Adapter, kein numerischer Kern. Die
+Release-Matrix installiert den Adapter, damit kein Pflichtnachweis übersprungen
+wird. Nur fehlende optionale Matplotlib-Imports toleriert mypy; der Kern bleibt
+strikt. CI-Actions nutzen Node-24-fähige SHA-Referenzen und Ubuntu 24.04.
