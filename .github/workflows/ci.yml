@@ -15,17 +15,17 @@ concurrency:
 jobs:
   quality:
     name: Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
@@ -33,9 +33,11 @@ jobs:
           version: '0.11.23'
           enable-cache: false
       - name: Install locked environment
-        run: uv sync --locked --python '${{ matrix.python-version }}'
+        run: uv sync --locked --extra plots --python '${{ matrix.python-version }}'
       - name: Tests
         run: uv run --no-sync python -m pytest
+      - name: Offline examples and diagrams
+        run: uv run --no-sync python -m finance_toolkit.examples --paths 100 --output /tmp/finance-demo --plot
       - name: Lint
         run: uv run --no-sync python -m ruff check .
       - name: Formatting
@@ -50,7 +52,7 @@ jobs:
         shell: bash
         run: |
           uv venv /tmp/finance-wheel --python '${{ matrix.python-version }}'
-          uv export --locked --no-emit-project --output-file /tmp/finance-runtime.txt
+          uv export --locked --all-extras --no-emit-project --output-file /tmp/finance-runtime.txt
           uv pip install --python /tmp/finance-wheel/bin/python --require-hashes -r /tmp/finance-runtime.txt
           uv pip install --python /tmp/finance-wheel/bin/python --no-deps dist/*.whl
           cp -R tests /tmp/finance-wheel-tests

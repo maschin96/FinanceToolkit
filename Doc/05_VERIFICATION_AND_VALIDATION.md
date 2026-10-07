@@ -26,4 +26,6 @@ Exakte GBM-Schritte benötigen keinen Euler-Konvergenznachweis; statistische
 Konvergenz und Portfolio-Rastergrenzen müssen dennoch geprüft werden.
 Die Paketbasis konfiguriert pytest, ruff und mypy sowie die CI-Matrix für
 Python 3.11–3.13. Installationstests prüfen Versionsmetadaten und den ausgelieferten
-Typing-Marker auch im gebauten Wheel. Numerische Verifikation folgt erst in M1.
+Typing-Marker auch im gebauten Wheel. GBM-Nachweise stehen in
+[GBM-Simulation](11_GBM_SIMULATION.md); die übrigen Modellnachweise stehen im
+[M1-Verifikationsbericht](16_M1_VERIFICATION.md).
