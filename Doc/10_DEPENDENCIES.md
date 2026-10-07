@@ -22,8 +22,8 @@ Vor einer Distribution gebündelter Abhängigkeiten deren Hinweise separat prüf
 
 ## CI-Referenzen
 
-Actions werden auf vollständige Commit-SHAs fixiert: checkout v4, setup-python v5,
+Actions werden auf vollständige Commit-SHAs fixiert: checkout v5, setup-python v6,
 setup-uv v7 (Referenzen am 2026-10-07 geprüft). Versionskommentare dienen der
-Zuordnung; Updates erfordern erneute Prüfung des SHA und CI-Laufs. CI nutzt nur
+Zuordnung; Updates erfordern erneute Prüfung des SHA und CI-Laufs. Runner: Ubuntu 24.04, ohne automatische ubuntu-latest-Migration. CI nutzt nur
 contents: read, keine Secrets, keine persistierten Git-Zugangsdaten und keine
 pull_request_target-Ausführung. PR-Code läuft ausschließlich in unprivilegierten Jobs.

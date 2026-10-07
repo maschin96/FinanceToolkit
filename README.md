@@ -1,82 +1,98 @@
 # FinanceToolkit
 
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
-festverzinslichen Anleihen und daraus zusammengesetzten Portfolios.
+festverzinslichen Anleihen und gemischten Portfolios. **M1 / Version 0.1.0**
+implementiert den ersten vollständigen Funktionsumfang. Das Repository ist privat;
+es erfolgt keine Veröffentlichung auf PyPI.
 
-**Stand:** Installierbare Paketbasis mit reproduzierbarer Entwicklungsumgebung und
-CI für Python 3.11–3.13. Die GBM-Aktiensimulation ist auf dem M1-Branch vorhanden;
-Optionen, Anleihen und Portfolioanalyse folgen.
-Das Repository ist privat; es gibt noch kein veröffentlichtes Python-Paket.
+## Funktionen
 
-## Geplanter erster Funktionsumfang
+- Exakte geometrische Brownsche Bewegung: konfigurierbare Drift, Volatilität,
+  Laufzeit, Anzahl der Pfade/Schritte, Seed und korrelierte Aktien.
+- Europäische Calls/Puts nach Black-Scholes-Merton mit stetigen Zinsen und
+  Dividendenrendite; simulierte Käufe/Verkäufe und Long-/Short-Positionen.
+- Festverzinsliche ausfallfreie Anleihen: Nennwert, Kupon, Laufzeit,
+  Zahlungsfrequenz, Clean-/Dirty-Preis, Stückzinsen und variable Zinsszenarien.
+- Gemeinsames Positionsbuch: Cash, Ausführungspreise, Gebühren, explizite
+  Finanzierung, Kupons, Tilgung und einmalige Optionsabrechnung.
+- Portfolioverläufe, P&L, Renditen, Drawdown, aggregierter VaR und Expected Shortfall.
+- Offline-Beispiele, CSV/JSON-Exporte und optionale Diagramme.
 
-- Aktienpfade aus geometrischer Brownscher Bewegung mit konfigurierbarer Drift,
-  Volatilität, Horizont, Seed und Korrelation mehrerer Aktien.
-- Europäische Calls und Puts: analytische Bewertung, Long-/Short-Positionen,
-  Käufe und Verkäufe, Prämien und Barausgleich bei Verfall.
-- Ausfallfreie festverzinsliche Anleihen mit variierbarem Zins, Nennwert,
-  Kupon, Laufzeit und Zahlungsfrequenz; Zins-Szenarien und Anleihenportfolios.
-- Gemischte Portfolios mit Cashkonto, Gebühren, Neubewertung, Vermögensverläufen,
-  P&L, Rendite, Drawdown sowie Value at Risk und Expected Shortfall.
+## Installation und Beispiele
 
-Die erste Version verwendet eine einzige konfigurierbare Währung, Zeit in Jahren,
-Jahresraten als Dezimalzahlen und europäische Optionsausübung.
-Brokerhandel, Live-Marktdaten, Steuern, Kreditrisiken, amerikanische Optionen und
-GUI sind nicht Bestandteil von M1. Kaufen und Verkaufen bezeichnet simulierte
-Portfolio-Transaktionen.
-
-## Entwicklung
-
-Zielplattform: Python 3.11–3.13. Paketstruktur: `src/finance_toolkit/`.
-NumPy und SciPy bilden den numerischen Kern; pytest, ruff und mypy die Prüfwerkzeuge.
-Die Entwicklung verwendet uv 0.11.23 und die eingecheckte `uv.lock`.
+Python 3.11–3.13. Entwicklung mit uv 0.11.23 und eingecheckter uv.lock.
 [uv installieren](https://docs.astral.sh/uv/getting-started/installation/), dann:
 
 ```sh
-uv sync --locked --python 3.13
+uv sync --locked --extra plots
+uv run --no-sync python -m finance_toolkit.examples --seed 42 --paths 1000 --output outputs/m1-demo --plot
+```
+
+Ohne Diagramme: `uv sync --locked` und den Beispielaufruf ohne `--plot` ausführen.
+Installation nur der Laufzeitbibliothek: `uv sync --locked --no-dev`.
+`--locked` verhindert unbemerkte Dependency-Änderungen. Python-Patchversion und
+Plattform können variieren; Reproduzierbarkeit gilt bei gleichem Abhängigkeitsstand.
+[Beispiele und Parameter](examples/README.md) zeigen Änderungen an Zins, Laufzeit
+und Kupon sowie Protective Put, Covered Call und Anleihen-Zinsvergleiche.
+
+## Eigene Portfolios
+
+```python
+from finance_toolkit.analytics import analyze_portfolio
+from finance_toolkit.portfolio import EuropeanOption, Stock, Trade, value_portfolio
+from finance_toolkit.simulation import simulate_gbm
+
+market = simulate_gbm(
+    100.0, drift=0.06, volatility=0.20, horizon=2.0, steps=24, paths=1000, seed=42
+)
+put = EuropeanOption(
+    asset=0, strike=100, maturity=2, volatility=0.20, kind="put", multiplier=100
+)
+portfolio = value_portfolio(
+    market,
+    [Trade(0, Stock(), 100), Trade(0, put, 1)],
+    initial_cash=20_000,
+    rate=0.03,
+)
+analysis = analyze_portfolio(portfolio, confidence=0.95)
+print(analysis.wealth.shape)  # (1000, 25)
+print(analysis.risk)
+```
+
+Optionsquotes sind je Underlying-Einheit, Vertragswerte berücksichtigen den
+Multiplikator. Trade-Menge positiv = Kauf, negativ = Verkauf/Short. Zeit in Jahren,
+Raten annualisiert und dezimal, eine gemeinsame konfigurierbare Währung.
+Modellvolatilität für Optionen und reale GBM-Szenariodrift sind getrennte Eingaben.
+Portfolio-Raster müssen alle relevanten Transaktions-/Zahlungstermine enthalten.
+
+## Entwicklung und Verifikation
+
+```sh
+uv sync --locked --extra plots
 uv run --no-sync python -m pytest
 uv run --no-sync python -m ruff check .
 uv run --no-sync python -m ruff format --check .
 uv run --no-sync python -m mypy src/finance_toolkit
 git diff --check
+uv build
 ```
 
-Alternativ nach `uv sync`: Umgebung aktivieren (`source .venv/bin/activate`) und
-Prüfungen mit `python -m ...` ausführen. Der Lock legt Paketversionen und
-Artefakt-Hashes fest; `--locked` verhindert unbemerkte Änderungen. Python-Patchversion
-und Plattform können variieren. CI prüft alle drei unterstützten Minorversionen.
+Nach `uv sync` alternativ die virtuelle Umgebung aktivieren und `python -m ...`
+verwenden. Ohne `plots` ist ausschließlich der Diagrammtest sichtbar übersprungen;
+Release-CI installiert `plots` und prüft alle Tests und Beispiele ohne Auslassungen.
+CI prüft Python 3.11–3.13, Paketbau und frische Wheel-Installation außerhalb des
+Quellbaums. [Verifikationsbericht](Doc/16_M1_VERIFICATION.md) enthält Referenzen und
+Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
+[Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
 
-Paket bauen: `uv build`. Installation ohne Entwicklungswerkzeuge:
-`uv sync --locked --no-dev`.
-CI testet auch das gebaute Wheel in einer frischen Umgebung außerhalb des Quellbaums.
-Dependency-Updates werden bewusst mit `uv lock --upgrade` vorgenommen und erneut
-in der vollständigen CI-Matrix geprüft. [Abhängigkeiten](Doc/10_DEPENDENCIES.md).
+## Modellgrenzen
 
-## Aktien simulieren
+GBM mit konstanter Drift/Volatilität; europäische Barausgleichsoptionen;
+ausfallfreie feste Kupons, regelmäßige Zahlungen und flache stetige Zinskurven.
+Aktien liefern Preisrenditen ohne Dividenden-Cashflows. Keine Live-Daten,
+Kalibrierung, Steuern, FX, Brokeranbindung, Margin-Engine, amerikanische Optionen,
+GUI oder externe Portfolio-Zu-/Abflüsse. Numerisch verifiziert, nicht empirisch
+gegen reale Marktdaten validiert.
 
-```python
-from finance_toolkit.simulation import simulate_gbm
-
-result = simulate_gbm(
-    [100.0, 80.0],
-    drift=[0.06, 0.04],
-    volatility=[0.20, 0.30],
-    horizon=2.0,
-    steps=504,
-    paths=1000,
-    correlation=[[1.0, 0.5], [0.5, 1.0]],
-    seed=42,
-)
-print(result.times.shape)  # (505,), Jahre einschließlich t=0
-print(result.prices.shape)  # (1000, 505, 2): Pfade, Zeitpunkte, Aktien
-```
-
-Einzelaktien können mit skalarem Anfangskurs angegeben werden. Drift und
-Volatilität sind annualisierte Dezimalwerte; skalare Werte gelten für alle Aktien.
-Die Simulation verwendet exakte GBM-Schritte auf einem gleichmäßigen Raster.
-Optional ersetzt ein eigener `numpy.random.Generator` den Seed. Die reale
-Szenariodrift ist von risikoneutraler Bewertung zu unterscheiden.
-[Modell und Verifikationsnachweise](Doc/11_GBM_SIMULATION.md).
-
-[Roadmap und Issues](Doc/06_ROADMAP.md) · [Dokumentation](Doc/README.md) ·
-[Entwicklungsrichtlinien](AGENTS.md)
+[Dokumentation](Doc/README.md) · [Roadmap](Doc/06_ROADMAP.md) ·
+[Entwicklungsregeln](AGENTS.md) · [Änderungen](CHANGELOG.md)
