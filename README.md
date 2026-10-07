@@ -4,7 +4,8 @@ Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
 festverzinslichen Anleihen und daraus zusammengesetzten Portfolios.
 
 **Stand:** Installierbare Paketbasis mit reproduzierbarer Entwicklungsumgebung und
-CI für Python 3.11–3.13. Numerische APIs und Beispiele folgen in M1.
+CI für Python 3.11–3.13. Die GBM-Aktiensimulation ist auf dem M1-Branch vorhanden;
+Optionen, Anleihen und Portfolioanalyse folgen.
 Das Repository ist privat; es gibt noch kein veröffentlichtes Python-Paket.
 
 ## Geplanter erster Funktionsumfang
@@ -46,10 +47,36 @@ Artefakt-Hashes fest; `--locked` verhindert unbemerkte Änderungen. Python-Patch
 und Plattform können variieren. CI prüft alle drei unterstützten Minorversionen.
 
 Paket bauen: `uv build`. Installation ohne Entwicklungswerkzeuge:
-`uv sync --locked --no-dev`. Das Paket stellt zunächst nur Versionsmetadaten bereit.
+`uv sync --locked --no-dev`.
 CI testet auch das gebaute Wheel in einer frischen Umgebung außerhalb des Quellbaums.
 Dependency-Updates werden bewusst mit `uv lock --upgrade` vorgenommen und erneut
 in der vollständigen CI-Matrix geprüft. [Abhängigkeiten](Doc/10_DEPENDENCIES.md).
+
+## Aktien simulieren
+
+```python
+from finance_toolkit.simulation import simulate_gbm
+
+result = simulate_gbm(
+    [100.0, 80.0],
+    drift=[0.06, 0.04],
+    volatility=[0.20, 0.30],
+    horizon=2.0,
+    steps=504,
+    paths=1000,
+    correlation=[[1.0, 0.5], [0.5, 1.0]],
+    seed=42,
+)
+print(result.times.shape)  # (505,), Jahre einschließlich t=0
+print(result.prices.shape)  # (1000, 505, 2): Pfade, Zeitpunkte, Aktien
+```
+
+Einzelaktien können mit skalarem Anfangskurs angegeben werden. Drift und
+Volatilität sind annualisierte Dezimalwerte; skalare Werte gelten für alle Aktien.
+Die Simulation verwendet exakte GBM-Schritte auf einem gleichmäßigen Raster.
+Optional ersetzt ein eigener `numpy.random.Generator` den Seed. Die reale
+Szenariodrift ist von risikoneutraler Bewertung zu unterscheiden.
+[Modell und Verifikationsnachweise](Doc/11_GBM_SIMULATION.md).
 
 [Roadmap und Issues](Doc/06_ROADMAP.md) · [Dokumentation](Doc/README.md) ·
 [Entwicklungsrichtlinien](AGENTS.md)

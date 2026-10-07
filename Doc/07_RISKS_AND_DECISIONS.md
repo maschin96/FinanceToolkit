@@ -49,3 +49,17 @@ Sprünge oder Volatilitätscluster. Black-Scholes setzt idealisierte Handelsbedi
 voraus. Shortpositionen können unbegrenzte Verluste verursachen; M1 modelliert
 keine Brokeranforderungen. Zinsszenarien enthalten kein Kredit- oder Liquiditätsrisiko.
 Numerische Verifikation ist keine empirische Marktvalidierung.
+
+## ADR-004 – GBM-API und Typprüfung (2026-10-07)
+
+GBM liefert Zeitraster plus dreidimensionalen Preisarray; einzelne Aktien bleiben
+auf der Asset-Achse erhalten. Eigenwertzerlegung unterstützt positiv semidefinite
+Korrelationen einschließlich Rangdefizienz. RNG ist lokal oder explizit übergeben.
+Matrixtoleranz und numerische Fehler sind in Doc/11_GBM_SIMULATION.md festgelegt.
+Das gleichmäßige Raster ist die erste Simulations-API; die spätere Portfolio-API
+muss Zahlungs-/Tradezeiten darauf ausrichten oder ein separates Zeitraster ergänzen.
+
+mypy verwendet den laufenden Python-Interpreter statt einer pauschalen 3.11-
+Einstellung: NumPy-Versionen für neuere Python-Versionen liefern neuere Stub-Syntax.
+Die komplette CI-Matrix prüft Quellcode und Abhängigkeiten für jeden unterstützten
+Interpreter; die Typprüfung bleibt strikt.
