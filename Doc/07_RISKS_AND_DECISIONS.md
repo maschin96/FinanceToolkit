@@ -78,3 +78,14 @@ Diagramme sind ein optionaler Matplotlib-Adapter, kein numerischer Kern. Die
 Release-Matrix installiert den Adapter, damit kein Pflichtnachweis übersprungen
 wird. Nur fehlende optionale Matplotlib-Imports toleriert mypy; der Kern bleibt
 strikt. CI-Actions nutzen Node-24-fähige SHA-Referenzen und Ubuntu 24.04.
+
+## ADR-006 – M2 Risk Lab und Strategiepfade (2026-10-08, #21)
+
+[API-Verträge und Referenzen](18_M2_CONTRACTS.md) legen Einheiten, glatte
+Greek-Domäne, Stress-Snapshot und Ausführung fest. Preisgrenzfälle bleiben erhalten;
+Greek-Grenzen werden abgelehnt statt mathematisch undefinierte Werte zu erfinden.
+Separate Strategiepfade erhalten die M1-Mengenform. Verzögerte Ausführung und
+Prefix-Invarianz verhindern Zukunftsinformation. Verkäufe vor Käufen mit
+Cashbegrenzung liefern einen deterministischen, kreditfreien Kostenvergleich.
+Asset-Reihenfolge bei Cashknappheit ist bewusst explizit; sie kann Ergebnisse
+beeinflussen und ist keine Optimierung. Keine neuen numerischen Abhängigkeiten.
