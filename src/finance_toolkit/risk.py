@@ -7,7 +7,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from finance_toolkit._validation import finite_array, finite_float
 from finance_toolkit.instruments.bonds import TIME_TOLERANCE, Bond
-from finance_toolkit.instruments.options import option_greeks
+from finance_toolkit.instruments.options import black_scholes, option_greeks
 from finance_toolkit.portfolio import EuropeanOption, Instrument, Stock
 
 
@@ -201,4 +201,149 @@ def portfolio_exposures(snapshot: PortfolioSnapshot) -> PortfolioExposures:
         total_vega,
         total_rho,
         snapshot.cash,
+    )
+
+
+@dataclass(frozen=True)
+class StressScenario:
+    """Named hypothetical shocks; validated when applied to a snapshot.
+
+    spot_shocks: scalar or (assets,), relative; volatility_shocks: scalar or
+    (positions,), absolute decimal change, must be zero on non-option positions.
+    rate_shock: absolute decimal continuous-rate change. No probabilities.
+    """
+
+    name: str
+    spot_shocks: ArrayLike = 0.0
+    volatility_shocks: ArrayLike = 0.0
+    rate_shock: float = 0.0
+
+
+@dataclass(frozen=True)
+class StressResult:
+    """Currency values, same position order; cash unchanged, P&L stress minus base."""
+
+    name: str
+    base_positions: NDArray[np.float64]
+    stressed_positions: NDArray[np.float64]
+    position_pnl: NDArray[np.float64]
+    base_value: float
+    stressed_value: float
+    total_pnl: float
+    cash: float
+
+
+def _snapshot_values(
+    snapshot: PortfolioSnapshot,
+    spots: NDArray[np.float64],
+    rate: float,
+    vol_shocks: NDArray[np.float64],
+) -> NDArray[np.float64]:
+    values = np.zeros(len(snapshot.instruments))
+    quantities = np.asarray(snapshot.quantities)
+    for i, instrument in enumerate(snapshot.instruments):
+        if quantities[i] == 0:
+            continue
+        if isinstance(instrument, Stock):
+            quote = float(spots[instrument.asset])
+        elif snapshot.time >= instrument.maturity - TIME_TOLERANCE:
+            continue
+        elif isinstance(instrument, Bond):
+            quote = float(instrument.price(snapshot.time, rate=rate))
+        else:
+            quote = (
+                float(
+                    black_scholes(
+                        spots[instrument.asset],
+                        instrument.strike,
+                        instrument.maturity - snapshot.time,
+                        instrument.volatility + vol_shocks[i],
+                        rate,
+                        dividend_yield=instrument.dividend_yield,
+                        kind=instrument.kind,
+                    )
+                )
+                * instrument.multiplier
+            )
+        values[i] = quote * quantities[i]
+    return values
+
+
+def stress_portfolio(
+    snapshot: PortfolioSnapshot, scenario: StressScenario
+) -> StressResult:
+    """Fully reprice at unchanged time/holdings/cash; invalid shocks raise ValueError.
+
+    Negative stressed spots/volatility rejected, zero allowed for price APIs.
+    Expired instruments remain zero, with payments already in snapshot cash.
+    Scalar volatility shocks apply only to options; vector shocks require zero
+    entries on other positions. Numeric overflow is rejected.
+    """
+    if not isinstance(scenario.name, str) or not scenario.name.strip():
+        raise ValueError("scenario needs a nonempty name")
+    spots = np.asarray(snapshot.spots)
+    ds = np.broadcast_to(finite_array(scenario.spot_shocks, "spot_shocks"), spots.shape)
+    raw_vol = finite_array(scenario.volatility_shocks, "volatility_shocks")
+    dv = np.broadcast_to(raw_vol, (len(snapshot.instruments),)).copy()
+    dr = finite_float(scenario.rate_shock, "rate_shock")
+    for i, instrument in enumerate(snapshot.instruments):
+        if isinstance(instrument, EuropeanOption):
+            if instrument.volatility + dv[i] < 0:
+                raise ValueError("stressed volatility must be nonnegative")
+        elif raw_vol.ndim == 0:
+            dv[i] = 0
+        elif dv[i] != 0:
+            raise ValueError("volatility shock on non-option position")
+    try:
+        with np.errstate(over="raise", invalid="raise", divide="raise"):
+            stressed_spots = spots * (1 + ds)
+            if np.any(ds < -1) or np.any(stressed_spots < 0):
+                raise ValueError("stressed spots must be nonnegative")
+            stressed_rate = finite_float(snapshot.rate + dr, "stressed_rate")
+            base = _snapshot_values(snapshot, spots, snapshot.rate, np.zeros(dv.shape))
+            stressed = _snapshot_values(snapshot, stressed_spots, stressed_rate, dv)
+            pnl = stressed - base
+            base_value = float(base.sum() + snapshot.cash)
+            stressed_value = float(stressed.sum() + snapshot.cash)
+            total_pnl = float(pnl.sum())
+    except (FloatingPointError, OverflowError) as error:
+        raise ValueError("unrepresentable stress values") from error
+    if not all(
+        np.all(np.isfinite(x))
+        for x in (base, stressed, pnl, base_value, stressed_value, total_pnl)
+    ):
+        raise ValueError("unrepresentable stress values")
+    return StressResult(
+        scenario.name,
+        base,
+        stressed,
+        pnl,
+        base_value,
+        stressed_value,
+        total_pnl,
+        snapshot.cash,
+    )
+
+
+def stress_grid(
+    snapshot: PortfolioSnapshot, spot_shocks: ArrayLike, volatility_shocks: ArrayLike
+) -> NDArray[np.float64]:
+    """P&L grid (volatility shocks, spot shocks), common shocks across options/assets.
+
+    Both axes must be nonempty finite 1D vectors. Uses stress_portfolio unchanged,
+    suitable for optional heatmap adapters; no implicit probability interpretation.
+    """
+    ds = finite_array(spot_shocks, "spot_shocks")
+    dv = finite_array(volatility_shocks, "volatility_shocks")
+    if ds.ndim != 1 or dv.ndim != 1:
+        raise ValueError("grid axes must be one-dimensional")
+    return np.asarray(
+        [
+            [
+                stress_portfolio(snapshot, StressScenario("grid", s, v)).total_pnl
+                for s in ds
+            ]
+            for v in dv
+        ],
+        dtype=np.float64,
     )
