@@ -225,3 +225,73 @@ def simulate_strategy(
     return StrategyPaths(
         times, prices, initial_cash, quantities, cash, trades, fees, turnover, financing
     )
+
+
+def simulate_rebalancing(
+    market: GBMPaths,
+    target_weights: ArrayLike,
+    *,
+    initial_cash: float,
+    calendar: ArrayLike | None = None,
+    threshold: float | None = None,
+    fixed_fee: float = 0.0,
+    proportional_fee: float = 0.0,
+    lending_rate: float = 0.0,
+) -> StrategyPaths:
+    """Compare buy-and-hold, explicit calendar or strict weight-threshold signals.
+
+    At most one of calendar/threshold; neither means buy-and-hold. Weights finite
+    nonnegative (assets,) with sum <=1; cash is the remainder. Calendar is a
+    finite 1D vector of distinct matching grid times. Empty calendar is allowed.
+    Threshold is a fraction, 0<threshold<=1 (0.05 = five percentage points);
+    signal when any stock/cash weight deviation is strictly larger. Targets
+    computed at signal time and executed at the next point by simulate_strategy.
+    Final-point calendar events produce no trade. Invalid rules raise ValueError.
+    """
+    prices = finite_array(market.prices, "prices")
+    if prices.ndim != 3:
+        raise ValueError("prices must have shape (paths,times,assets)")
+    weights = _weights(target_weights, prices.shape[2])
+    if calendar is not None and threshold is not None:
+        raise ValueError("choose calendar or threshold, not both")
+    scheduled: set[float] = set()
+    if calendar is not None:
+        dates = np.asarray(calendar, dtype=np.float64)
+        times = finite_array(market.times, "times")
+        if dates.ndim != 1 or not np.all(np.isfinite(dates)) or times.ndim != 1:
+            raise ValueError("calendar must be a finite 1D vector")
+        for date in dates:
+            matches = np.flatnonzero(np.abs(times - date) <= TIME_TOLERANCE)
+            if matches.size != 1 or float(times[matches[0]]) in scheduled:
+                raise ValueError("calendar times must match distinct grid points")
+            scheduled.add(float(times[matches[0]]))
+    if threshold is not None:
+        threshold = finite_float(threshold, "threshold")
+        if not 0 < threshold <= 1:
+            raise ValueError("threshold must be in (0,1]")
+
+    def signal(state: StrategyState) -> ArrayLike | None:
+        wealth = state.wealth
+        if wealth <= 0:
+            raise ValueError("rebalancing needs positive wealth")
+        if threshold is not None:
+            actual = state.quantities * state.spots / wealth
+            cash_deviation = abs(state.cash / wealth - (1 - weights.sum()))
+            if not (
+                np.any(np.abs(actual - weights) > threshold)
+                or cash_deviation > threshold
+            ):
+                return None
+        elif state.time not in scheduled:
+            return None
+        return weights * wealth / state.spots
+
+    return simulate_strategy(
+        market,
+        signal if calendar is not None or threshold is not None else None,
+        initial_cash=initial_cash,
+        initial_weights=weights,
+        fixed_fee=fixed_fee,
+        proportional_fee=proportional_fee,
+        lending_rate=lending_rate,
+    )
