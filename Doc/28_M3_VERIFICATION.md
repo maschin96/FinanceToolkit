@@ -96,6 +96,8 @@ Wheel-Installation mit gehashten Abhängigkeiten außerhalb des Quellbaums.
 M1-, Risk-, Hedge- und Index-Lab laufen offline mit Diagrammen sowohl im
 Quellbaum als auch aus dem Wheel. Indexdemo verwendet die explizite synthetische
 Konfiguration, niemals Live-Daten. Installation prüft Version und py.typed.
+Lokale frische Python-3.13-Wheel-Prüfung außerhalb des Quellbaums: 295 Tests
+und alle vier Offline-CLIs mit Diagrammen erfolgreich.
 Aktuelle PR-, Milestone- und main-Zielcommit-CI sowie Release-Artefakte werden
 in Issue #47 verlinkt; lokale Prüfungen ersetzen diese Matrix nicht.
 
