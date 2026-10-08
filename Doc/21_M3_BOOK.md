@@ -27,3 +27,19 @@ Handreferenzen in `test_options_book.py` rekonstruieren Teilverkauf, vollständi
 Schließung, mehrere Fälligkeiten, Long/Short und pfadabhängige Ausführung.
 Toleranzen 1e-10 Währung absolut und 1e-14 relativ decken Rundung von kleinen
 Summen bei Kapitalgrößen um 1000 ab; ganzzahlige Ereignismengen werden exakt geprüft.
+
+## Finanzierung (#40)
+
+`allow_short_stocks` und `allow_borrowing` sind standardmäßig false und müssen
+Boolesche Werte sein. Optionsshorts benötigen keinen besonderen Schalter; etwaige
+Cashdefizite dennoch die explizite Kreditfreigabe. `lending_rate`/`borrowing_rate`
+sind separate endliche stetige Jahresraten, Standard null. Auf den Cashstand am
+Intervallbeginn wird `cash * expm1(rate * dt)` gebucht. Danach fallen Aktienleihe-
+Modellkosten `max(-shares,0) * previous_spot * stock_borrow_rate * dt` an,
+positionsweise in `stock_borrow_costs`; Standard null, negative Kostensätze verboten.
+Gebühren bleiben hiervon getrennt. Kein Broker-, Margin- oder Verfügbarkeitsmodell.
+
+Cashbilanz ergänzt um minus kumulierte Aktienleihekosten. Absolute Vermögen und
+P&L bleiben auch bei Null/negativem Vermögen verfügbar; `weights` lehnt solche
+Verläufe ausdrücklich ab. Handreferenzen prüfen positive/negative Exponential-
+finanzierung und die linke Intervallbewertung beim Teil-Cover eines Aktien-Shorts.
