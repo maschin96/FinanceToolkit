@@ -85,7 +85,7 @@ class BookPaths:
 
     @property
     def wealth(self) -> NDArray[np.float64]:
-        return self.cash + self.values.sum(axis=-1)
+        return np.asarray(self.cash + self.values.sum(axis=-1), dtype=np.float64)
 
 
 def _readonly(value: NDArray[np.float64]) -> NDArray[np.float64]:
