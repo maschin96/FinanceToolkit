@@ -114,6 +114,7 @@ def simulate_book(
     proportional_fee: float = 0.0,
     allow_short_stocks: bool = False,
     allow_borrowing: bool = False,
+    close_hedges_at_expiry: bool = False,
     lending_rate: float = 0.0,
     borrowing_rate: float = 0.0,
     stock_borrow_rate: float = 0.0,
@@ -152,7 +153,10 @@ def simulate_book(
         raise ValueError("instruments must be stocks/options with available assets")
     if len(set(instruments)) != len(instruments):
         raise ValueError("duplicate instruments")
-    if type(allow_short_stocks) is not bool or type(allow_borrowing) is not bool:
+    if any(
+        type(x) is not bool
+        for x in (allow_short_stocks, allow_borrowing, close_hedges_at_expiry)
+    ):
         raise ValueError("financing permissions must be bool")
     lending_rate = finite_float(lending_rate, "lending_rate")
     borrowing_rate = finite_float(borrowing_rate, "borrowing_rate")
@@ -241,6 +245,39 @@ def simulate_book(
                                     kind=instrument.kind,
                                 )
                             )
+                    if any(
+                        not isinstance(o, Order) or o.instrument >= len(instruments)
+                        for o in pending
+                    ):
+                        raise ValueError("order must address an available instrument")
+                    if close_hedges_at_expiry:
+                        closed_assets = {
+                            x.asset
+                            for j, x in enumerate(instruments)
+                            if j in expiries
+                            and t == expiries[j]
+                            and not any(
+                                isinstance(y, EuropeanOption)
+                                and y.asset == x.asset
+                                and y.maturity > time + TIME_TOLERANCE
+                                for y in instruments
+                            )
+                        }
+                        pending = tuple(
+                            o
+                            for o in pending
+                            if not (
+                                isinstance(instruments[o.instrument], Stock)
+                                and instruments[o.instrument].asset in closed_assets
+                            )
+                        )
+                        pending += tuple(
+                            Order(j, -holding[j])
+                            for j, x in enumerate(instruments)
+                            if isinstance(x, Stock)
+                            and x.asset in closed_assets
+                            and holding[j] != 0
+                        )
                     for order in pending:
                         if not isinstance(order, Order) or order.instrument >= len(
                             instruments
