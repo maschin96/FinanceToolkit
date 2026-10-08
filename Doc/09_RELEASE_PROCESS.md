@@ -18,3 +18,13 @@
 Kein Force-Push, kein vorzeitiger Merge neuer Milestone-Funktionen nach main.
 Das private Repository bleibt privat. Es wird keine Open-Source-Lizenz ohne
 Eigentümerentscheidung vergeben.
+
+
+## M2 / v0.2.0
+
+Issue-PRs #30–#36 und der Verifikations-PR zielen auf `codex/milestone-m2`. Release-Issue #28 bleibt
+bis zum vollständigen Veröffentlichungsabschluss offen. Vor Release main in
+milestone-m2 integrieren; Pflichtumfang, Dokumentation, CI und Review-Anmerkungen
+am aktuellen Stand prüfen. Release-PR nach main, Zielcommit-CI prüfen, danach
+v0.2.0 taggen und Wheel/Quelldistribution im privaten Release ablegen.
+Ein Umsetzungsauftrag auf dem Milestone-Branch veröffentlicht noch kein Release.

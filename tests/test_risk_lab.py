@@ -111,3 +111,11 @@ def test_cash_financing_exported_once_per_portfolio_time(tmp_path):
             if r["portfolio"] == "calendar" and r["time_years"] == "1.0"
         )
     assert float(row["financing"]) == report.strategies["calendar"].financing[0, -1]
+
+
+def test_option_comparison_exports_opening_turnover_and_costs():
+    report = build_risk_lab(paths=3, steps=4)
+    for name, result in report.option_portfolios.items():
+        assert report.metrics[name]["mean_cost"] == 0
+        expected = float(np.abs(result.trade_cashflows[:, 0]).mean())
+        assert report.metrics[name]["mean_turnover"] == expected

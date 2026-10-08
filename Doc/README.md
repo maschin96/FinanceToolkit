@@ -13,8 +13,11 @@
 - [Anleihen](13_BONDS.md)
 - [Positionsbuch und Neubewertung](14_PORTFOLIO.md)
 - [Analysekennzahlen](15_ANALYTICS.md)
+- [M2-Verifikationsbericht](20_M2_VERIFICATION.md)
 - [M1-Verifikationsbericht](16_M1_VERIFICATION.md)
 - [Beispiele](../examples/README.md)
 
 M1 umfasst numerisch verifizierte Aktien-, Options-, Anleihen- und Portfolio-APIs.
+M2 erweitert diese auf dem Milestone-Branch um das Portfolio Risk Lab;
+Veröffentlichungsabschluss wird in Issue #28 verfolgt.
 Konkrete Integrations-/Release-Nachweise stehen in GitHub-Issue #9. Keine empirische Marktvalidierung.

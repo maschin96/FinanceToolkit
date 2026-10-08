@@ -121,6 +121,15 @@ def build_risk_lab(*, seed: int = 42, paths: int = 1000, steps: int = 12) -> Ris
             for name, r in option_portfolios.items()
         }
     )
+    # These examples only have opening buys, so absolute opening trade cashflow
+    # is their executed notional turnover (not a generic netted-trade measure).
+    for name, option_result in option_portfolios.items():
+        metrics[name]["mean_cost"] = float(
+            -option_result.fee_cashflows.sum(axis=1).mean()
+        )
+        metrics[name]["mean_turnover"] = float(
+            np.abs(option_result.trade_cashflows[:, 0]).mean()
+        )
     snapshots = {
         name: PortfolioSnapshot(
             0,

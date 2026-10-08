@@ -1,5 +1,16 @@
 # Änderungen
 
+## 0.2.0 – M2 vorbereitet, noch nicht veröffentlicht
+
+- Analytische BSM-Greeks mit Broadcasting und expliziten Einheiten/Grenzen.
+- Portfolio-Exposures je Position/Underlying; Anleihen-DV01 und Konvexität.
+- Vollständige Snapshot-Neubewertung unter Spot-/Volatilitäts-/Zinsschocks.
+- Pfadabhängige Long-only-Aktien-/Cash-Strategien mit verzögerter Ausführung,
+  Cashbegrenzung, festen/proportionalen Gebühren und expliziter Finanzierung.
+- Kalender- und Schwellen-Rebalancing einschließlich Cashrest.
+- Reproduzierbares Offline-Risk-Lab mit CSV/JSON und optionalen PNGs.
+- Bestehende M1-APIs und Arrayformen erhalten; keine neuen Pflichtabhängigkeiten.
+
 ## 0.1.0 – 2026-10-07
 
 Erster vollständiger M1-Funktionsumfang:
