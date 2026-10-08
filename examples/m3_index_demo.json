@@ -1,0 +1,11 @@
+{
+  "tickers": ["ALPHA", "BETA"],
+  "start": "2026-01-01",
+  "end": "2026-01-07",
+  "base_date": "2026-01-01",
+  "base_value": 100,
+  "weights": [0.5, 0.5],
+  "calendar_policy": "strict",
+  "rebalance": "explicit",
+  "rebalance_dates": ["2026-01-02"]
+}
