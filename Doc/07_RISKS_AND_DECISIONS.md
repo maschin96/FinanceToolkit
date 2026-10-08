@@ -89,3 +89,15 @@ Prefix-Invarianz verhindern Zukunftsinformation. Verkäufe vor Käufen mit
 Cashbegrenzung liefern einen deterministischen, kreditfreien Kostenvergleich.
 Asset-Reihenfolge bei Cashknappheit ist bewusst explizit; sie kann Ergebnisse
 beeinflussen und ist keine Optimierung. Keine neuen numerischen Abhängigkeiten.
+
+## ADR-007 – M3 gemischtes Positionsbuch (2026-10-08, #39)
+
+Ein separates Optionsbuch erhält M1/M2-APIs unverändert. Das Instrumentuniversum
+wird vorab festgelegt; Mengen sind pfadabhängig. Initialorders handeln sofort,
+Signale aus schreibgeschützten Kopien aktueller Beobachtungen erst am folgenden
+Rasterpunkt. Optionen werden bei Fälligkeit einmal bar abgerechnet und gelöscht;
+spätere Orders werden abgelehnt. Reihenfolge: Finanzierung, Fälligkeit, Orders,
+ex-Ereignisbewertung, Signal. Quotes sind je Underlying-Einheit, Optionswerte und
+Prämien enthalten den Vertragsmultiplikator. Keine Aktien-Cashdividenden oder
+externen Einzahlungen. Das Basisbuch erlaubt signed Optionen, jedoch keine
+Aktien-Shorts oder Cashkredite; #40 ergänzt explizite Finanzierungsschalter.
