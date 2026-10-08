@@ -33,7 +33,7 @@ jobs:
           version: '0.11.23'
           enable-cache: false
       - name: Install locked environment
-        run: uv sync --locked --extra plots --python '${{ matrix.python-version }}'
+        run: uv sync --locked --extra plots --extra yahoo --python '${{ matrix.python-version }}'
       - name: Tests
         run: uv run --no-sync python -m pytest
       - name: Offline examples and diagrams
