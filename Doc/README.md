@@ -3,6 +3,7 @@
 - [Verifikation und Validierung](05_VERIFICATION_AND_VALIDATION.md)
 - [Roadmap und Abhängigkeiten](06_ROADMAP.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
+- [M2 – Risk Lab](19_RISK_LAB.md)
 - [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)
 - [Architektur und Entscheidungen](07_RISKS_AND_DECISIONS.md)
 - [Release-Prozess](09_RELEASE_PROCESS.md)
