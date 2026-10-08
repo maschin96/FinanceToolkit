@@ -211,7 +211,7 @@ def simulate_strategy(
                             pending = finite_array(result, "signal quantities").copy()
                             if pending.shape != current.shape or np.any(pending < 0):
                                 raise ValueError(
-                                    "signal needs nonnegative quantities shaped (assets,)"
+                                    "signal needs nonnegative (assets,) quantities"
                                 )
     except (FloatingPointError, OverflowError) as error:
         raise ValueError("unrepresentable strategy values") from error
