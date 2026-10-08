@@ -82,10 +82,18 @@ class BookPaths:
     settlements: NDArray[np.float64]
     cash: NDArray[np.float64]
     financing: NDArray[np.float64]
+    stock_borrow_costs: NDArray[np.float64]
 
     @property
     def wealth(self) -> NDArray[np.float64]:
         return np.asarray(self.cash + self.values.sum(axis=-1), dtype=np.float64)
+
+    @property
+    def weights(self) -> NDArray[np.float64]:
+        """Signed position weights; undefined for nonpositive wealth."""
+        if np.any(self.wealth <= 0):
+            raise ValueError("weights require positive wealth")
+        return np.asarray(self.values / self.wealth[..., None], dtype=np.float64)
 
 
 def _readonly(value: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -104,13 +112,22 @@ def simulate_book(
     rate: float = 0.0,
     fixed_fee: float = 0.0,
     proportional_fee: float = 0.0,
+    allow_short_stocks: bool = False,
+    allow_borrowing: bool = False,
+    lending_rate: float = 0.0,
+    borrowing_rate: float = 0.0,
+    stock_borrow_rate: float = 0.0,
 ) -> BookPaths:
     """Initial orders execute immediately; current signals execute next grid point.
 
     Time in years starting at zero, strictly increasing; positive finite spots.
     Every option expiry within horizon must occur on grid (1e-10 year tolerance).
-    Cash financing is zero in this base engine. Stock shorts and borrowing rejected;
-    signed options supported. Orders execute in supplied order, atomically validated
+    Cash earns/owes separate continuous lending/borrowing rates.
+    Stock shorts and borrowing require explicit permissions;
+    stock loan charges use left-interval signed shares and spot times annual
+    stock_borrow_rate times elapsed years, booked after interest and before events.
+    These are model charges, not broker availability/margin. Signed options
+    supported. Orders execute in supplied order, atomically validated
     against resulting cash. Fixed/proportional fees plus explicit per-order fee.
     Events: financing, cash settlement/clear expiry, orders, ex-event valuation,
     signal. Trading an expired option raises ValueError, including delayed orders.
@@ -135,6 +152,13 @@ def simulate_book(
         raise ValueError("instruments must be stocks/options with available assets")
     if len(set(instruments)) != len(instruments):
         raise ValueError("duplicate instruments")
+    if type(allow_short_stocks) is not bool or type(allow_borrowing) is not bool:
+        raise ValueError("financing permissions must be bool")
+    lending_rate = finite_float(lending_rate, "lending_rate")
+    borrowing_rate = finite_float(borrowing_rate, "borrowing_rate")
+    stock_borrow_rate = finite_float(stock_borrow_rate, "stock_borrow_rate")
+    if stock_borrow_rate < 0:
+        raise ValueError("stock_borrow_rate must be nonnegative")
     initial_cash = finite_float(initial_cash, "initial_cash")
     rate = finite_float(rate, "rate")
     fixed_fee = finite_float(fixed_fee, "fixed_fee")
@@ -157,6 +181,7 @@ def simulate_book(
     quantities, quotes, values, trades, trade_cf, fees, turnover, settlements = (
         np.zeros(shape) for _ in range(8)
     )
+    stock_borrow_costs = np.zeros(shape)
     cash, financing = (np.zeros(spots.shape[:2]) for _ in range(2))
     multipliers = np.array(
         [x.multiplier if isinstance(x, EuropeanOption) else 1.0 for x in instruments]
@@ -168,6 +193,22 @@ def simulate_book(
                 balance = initial_cash
                 pending = tuple(initial_orders)
                 for t, time in enumerate(times):
+                    if t:
+                        dt = time - times[t - 1]
+                        cash_rate = lending_rate if balance >= 0 else borrowing_rate
+                        earned = balance * np.expm1(cash_rate * dt)
+                        financing[p, t] = earned
+                        balance += earned
+                        for j, instrument in enumerate(instruments):
+                            if isinstance(instrument, Stock) and holding[j] < 0:
+                                charge = (
+                                    -holding[j]
+                                    * spots[p, t - 1, instrument.asset]
+                                    * stock_borrow_rate
+                                    * dt
+                                )
+                                stock_borrow_costs[p, t, j] = charge
+                                balance -= charge
                     for j, instrument in enumerate(instruments):
                         spot = spots[p, t, instrument.asset]
                         if isinstance(instrument, Stock):
@@ -219,12 +260,18 @@ def simulate_book(
                         trade_cf[p, t, j] -= amount
                         fees[p, t, j] += charge
                         turnover[p, t, j] += abs(amount)
-                    if balance < -1e-10 or any(
-                        isinstance(x, Stock) and holding[j] < 0
-                        for j, x in enumerate(instruments)
+                    if (not allow_borrowing and balance < -1e-10) or (
+                        not allow_short_stocks
+                        and any(
+                            isinstance(x, Stock) and holding[j] < 0
+                            for j, x in enumerate(instruments)
+                        )
                     ):
-                        raise ValueError("book cannot borrow cash or short stocks")
-                    balance = max(balance, 0.0)
+                        raise ValueError(
+                            "book cannot borrow cash or short stocks without permission"
+                        )
+                    if not allow_borrowing:
+                        balance = max(balance, 0.0)
                     quantities[p, t] = holding
                     values[p, t] = holding * quotes[p, t] * multipliers
                     cash[p, t] = balance
@@ -254,6 +301,8 @@ def simulate_book(
             turnover,
             settlements,
             cash,
+            financing,
+            stock_borrow_costs,
         )
     ):
         raise ValueError("unrepresentable book values")
@@ -273,4 +322,5 @@ def simulate_book(
         settlements,
         cash,
         financing,
+        stock_borrow_costs,
     )

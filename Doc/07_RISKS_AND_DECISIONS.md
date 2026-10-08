@@ -101,3 +101,12 @@ ex-Ereignisbewertung, Signal. Quotes sind je Underlying-Einheit, Optionswerte un
 Prämien enthalten den Vertragsmultiplikator. Keine Aktien-Cashdividenden oder
 externen Einzahlungen. Das Basisbuch erlaubt signed Optionen, jedoch keine
 Aktien-Shorts oder Cashkredite; #40 ergänzt explizite Finanzierungsschalter.
+
+## ADR-008 – Explizite Hedge-Finanzierung (2026-10-08, #40)
+
+M3 erlaubt Aktien-Shorts und Cashkredite nur mit getrennten Opt-ins. Cashzinsen
+nutzen den Anfangssaldo und einen passenden stetigen Satz. Aktienleihekosten
+verwenden Anfangsaktienmenge und Anfangsspot mal Jahreskostensatz mal Zeitlänge;
+das ist eine dokumentierte Rasterapproximation, kein Broker-Leihvertrag.
+Zinsen werden vor Leihekosten und Ereignissen gebucht. Nichtpositives Vermögen
+ist kein Simulationsfehler; relative Kennzahlen benötigen eine positive Basis.
