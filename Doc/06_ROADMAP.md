@@ -28,12 +28,16 @@ von Paket und Tests, nicht als unbelegte Liefertermine.
 
 ## Spätere, nicht beauftragte Erweiterungen
 
+M2 wird als [Portfolio Risk Lab](17_M2_ROADMAP.md) geplant: Greeks,
+Portfolio-Exposures, Stressszenarien und Aktien-/Cash-Rebalancing mit Kostenvergleich.
+Die Planung führt noch keine neue ausführbare Funktionalität ein.
 Kalibrierung aus Marktdaten, stochastische Zinsen, amerikanische Optionen,
-Greeks, Backtesting, Optimierung, FX und Oberfläche werden bei Bedarf separat geplant.
+empirisches Backtesting, Optimierung, FX und Oberfläche bleiben spätere Erweiterungen.
 
 ## Abnahmestand M1
 
 M0 ist stabil in main freigegeben (PR #11). Alle M1-Funktions-Issues #3–#8
 sind geprüft und in codex/milestone-m1 integriert (PRs #12–#17).
-Issue #9 bleibt bis main-Zielcommit-CI, Tag und privaten Release-Artefakten offen.
-Die Release-Integration umfasst ausschließlich den vollständigen M1-Pflichtumfang.
+M1 ist mit Release-PR #19 in main integriert; v0.1.0 wurde am 2026-10-07
+veröffentlicht und Issue #9 geschlossen. Damit ist die Voraussetzung für den
+Beginn von M2 erfüllt.
