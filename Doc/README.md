@@ -17,7 +17,14 @@
 - [M1-Verifikationsbericht](16_M1_VERIFICATION.md)
 - [Beispiele](../examples/README.md)
 
-M1 umfasst numerisch verifizierte Aktien-, Options-, Anleihen- und Portfolio-APIs.
-M2 erweitert diese auf dem Milestone-Branch um das Portfolio Risk Lab;
-Veröffentlichungsabschluss wird in Issue #28 verfolgt.
-Konkrete Integrations-/Release-Nachweise stehen in GitHub-Issue #9. Keine empirische Marktvalidierung.
+- [M3 – Dynamisches Optionsbuch und Finanzierung](21_M3_BOOK.md)
+- [M3 – Optionsstrategien](22_M3_OPTION_STRATEGIES.md)
+- [M3 – Delta-Hedging](23_M3_HEDGING.md)
+- [M3 – P&L-Attribution](24_M3_ATTRIBUTION.md)
+- [M3 – Yahoo-Marktdaten](25_M3_YAHOO.md)
+- [M3 – Hedge-/Strategy-Lab](26_M3_HEDGE_LAB.md)
+- [M3 – Eigene Aktienindizes](27_M3_CUSTOM_INDICES.md)
+- [M3 – Gesamtverifikation](28_M3_VERIFICATION.md)
+
+M1–M3 sind numerisch verifiziert; keine empirische Marktvalidierung.
+Release-Nachweise: GitHub-Issues #9, #28 und #47.

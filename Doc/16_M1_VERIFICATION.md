@@ -49,7 +49,7 @@ Die Linux-CI-Matrix prüft Python 3.11, 3.12 und 3.13; lokal Python 3.13/macOS.
 Zusätzliche frische Python-3.11-Wheel-Prüfung: alle 130 Tests und Beispiel-CLI
 bestanden; Actions-Ausführung prüft zusätzlich die Linux-Plattform.
 CI muss am aktuellen Release-PR-Stand und tatsächlichen main-Zielcommit grün sein,
-bevor v0.1.0 getaggt und Wheel/Quelldistribution im privaten GitHub Release abgelegt
+bevor v0.1.0 getaggt und Wheel/Quelldistribution im öffentlichen GitHub Release abgelegt
 werden. Konkrete Commit-/CI-Ergebnisse sind im Release-PR und Release-Issue #9.
 
 ## Einschränkungen und Review

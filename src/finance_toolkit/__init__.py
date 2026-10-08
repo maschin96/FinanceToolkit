@@ -1,4 +1,4 @@
-"""Finance Toolkit package; numerical models and the M2 Portfolio Risk Lab."""
+"""Finance Toolkit package; numerical models and the M3 Strategy & Hedging Lab."""
 
 from importlib.metadata import version
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "finance-toolkit"
-version = "0.2.0"
+version = "0.3.0"
 description = "Equity, options, bonds and portfolio analysis toolbox"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -12,6 +12,7 @@ dependencies = ["numpy>=2.2,<3", "scipy>=1.15,<2"]
 
 [project.optional-dependencies]
 plots = ["matplotlib>=3.10,<4"]
+yahoo = ["yfinance[repair]==1.7.0"]
 
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.11,<1", "mypy>=1.15,<2"]

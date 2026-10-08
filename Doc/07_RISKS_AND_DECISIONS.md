@@ -89,3 +89,52 @@ Prefix-Invarianz verhindern Zukunftsinformation. Verkäufe vor Käufen mit
 Cashbegrenzung liefern einen deterministischen, kreditfreien Kostenvergleich.
 Asset-Reihenfolge bei Cashknappheit ist bewusst explizit; sie kann Ergebnisse
 beeinflussen und ist keine Optimierung. Keine neuen numerischen Abhängigkeiten.
+
+## ADR-007 – M3 gemischtes Positionsbuch (2026-10-08, #39)
+
+Ein separates Optionsbuch erhält M1/M2-APIs unverändert. Das Instrumentuniversum
+wird vorab festgelegt; Mengen sind pfadabhängig. Initialorders handeln sofort,
+Signale aus schreibgeschützten Kopien aktueller Beobachtungen erst am folgenden
+Rasterpunkt. Optionen werden bei Fälligkeit einmal bar abgerechnet und gelöscht;
+spätere Orders werden abgelehnt. Reihenfolge: Finanzierung, Fälligkeit, Orders,
+ex-Ereignisbewertung, Signal. Quotes sind je Underlying-Einheit, Optionswerte und
+Prämien enthalten den Vertragsmultiplikator. Keine Aktien-Cashdividenden oder
+externen Einzahlungen. Das Basisbuch erlaubt signed Optionen, jedoch keine
+Aktien-Shorts oder Cashkredite; #40 ergänzt explizite Finanzierungsschalter.
+
+## ADR-008 – Explizite Hedge-Finanzierung (2026-10-08, #40)
+
+M3 erlaubt Aktien-Shorts und Cashkredite nur mit getrennten Opt-ins. Cashzinsen
+nutzen den Anfangssaldo und einen passenden stetigen Satz. Aktienleihekosten
+verwenden Anfangsaktienmenge und Anfangsspot mal Jahreskostensatz mal Zeitlänge;
+das ist eine dokumentierte Rasterapproximation, kein Broker-Leihvertrag.
+Zinsen werden vor Leihekosten und Ereignissen gebucht. Nichtpositives Vermögen
+ist kein Simulationsfehler; relative Kennzahlen benötigen eine positive Basis.
+
+## ADR-009 – Hedge-Ausführung und Close-out (2026-10-08, #41)
+
+Optionsdelta wird zum Signalzeitpunkt berechnet; Zielaktienmenge wird erst am
+folgenden Rasterpunkt gehandelt. Ein Aktieninstrument pro Underlying ist allein
+für den Hedge reserviert. Bei letzter Optionsfälligkeit wird dieses Instrument
+nach Abrechnung zum aktuellen Spot glattgestellt; alte pending Hedgeorders
+verfallen. Damit ist Close-out ein explizites Ereignis ohne Zukunftszugriff.
+Schwellen messen absolute Aktienäquivalente, keine Gewichtsprozente.
+
+## ADR-010 – Feste eigene Indexuniversen (2026-10-08, #46)
+
+Kursindex und Total Return konsumieren getrennte split-/dividendenadjustierte
+Serien, Corporate Actions nicht nochmals anwenden. Stückzahlen beziehen sich
+auf adjustierte Serien; kein Brokerbestand. Minor Quoteeinheiten explizit
+normalisieren, sonst eine gemeinsame Währung ohne FX. Strict Calendar default;
+Intersection nur mit dokumentierten Ausschlüssen. Monatssignale am ersten
+beobachteten Tag des neuen Monats und Trades in der Folgesitzung verhindern
+future-dependent Monatsende. Beiträge aus Anfangsbeständen reconciliieren Rendite.
+
+## ADR-011 – Öffentliche Repository- und Release-Sichtbarkeit (2026-10-08, #47)
+
+GitHub meldet das Repository als öffentlich. Der Eigentümer hat ausdrücklich
+entschieden, diese Sichtbarkeit zu erhalten und die bislang abweichende
+Dokumentation anzupassen. GitHub-Tags und Paketartefakte werden öffentlich
+veröffentlicht; keine Veröffentlichung auf PyPI. Öffentliche Sichtbarkeit
+vergibt keine Open-Source-Lizenz und keine Weiterverteilungsrechte an Yahoo-
+Marktdaten. Private Datensätze, Caches und Zugangsdaten bleiben ausgeschlossen.
