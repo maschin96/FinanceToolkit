@@ -26,11 +26,12 @@ Alle anderen Arbeitspakete haben Priorität P0. Kein Issue gilt allein durch ein
 lokalen Commit als abgeschlossen. Aufwandsschätzungen erfolgen nach Einrichtung
 von Paket und Tests, nicht als unbelegte Liefertermine.
 
-## Spätere, nicht beauftragte Erweiterungen
+## M2 – Portfolio Risk Lab und spätere Erweiterungen
 
-M2 wird als [Portfolio Risk Lab](17_M2_ROADMAP.md) geplant: Greeks,
+M2 ist als [Portfolio Risk Lab](17_M2_ROADMAP.md) auf dem Milestone-Branch umgesetzt: Greeks,
 Portfolio-Exposures, Stressszenarien und Aktien-/Cash-Rebalancing mit Kostenvergleich.
-Die Planung führt noch keine neue ausführbare Funktionalität ein.
+[Verifikation und Release-Stand](20_M2_VERIFICATION.md); #28 bleibt bis zur
+Veröffentlichung offen.
 Kalibrierung aus Marktdaten, stochastische Zinsen, amerikanische Optionen,
 empirisches Backtesting, Optimierung, FX und Oberfläche bleiben spätere Erweiterungen.
 

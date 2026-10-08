@@ -2,8 +2,8 @@
 
 Planungsstand: 2026-10-08. Planungs-Issue: [#20](https://github.com/maschin96/FinanceToolkit/issues/20).
 Vorgesehenes Release: **v0.2.0**. M1/v0.1.0 ist veröffentlicht und Issue #9
-geschlossen. Diese Roadmap plant den nächsten Funktionsumfang; sie implementiert ihn
-noch nicht. Die Paket-IDs A–H sind den unten verlinkten GitHub-Issues zugeordnet.
+geschlossen. Der Feature-Umfang ist auf `codex/milestone-m2` umgesetzt;
+[Gesamtverifikation und Release-Stand](20_M2_VERIFICATION.md). Die Paket-IDs A–H sind den unten verlinkten GitHub-Issues zugeordnet.
 
 ## Produktziel
 

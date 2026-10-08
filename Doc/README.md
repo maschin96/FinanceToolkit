@@ -3,6 +3,8 @@
 - [Verifikation und Validierung](05_VERIFICATION_AND_VALIDATION.md)
 - [Roadmap und Abhängigkeiten](06_ROADMAP.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
+- [M2 – Risk Lab](19_RISK_LAB.md)
+- [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)
 - [Architektur und Entscheidungen](07_RISKS_AND_DECISIONS.md)
 - [Release-Prozess](09_RELEASE_PROCESS.md)
 - [Abhängigkeiten und Lizenzen](10_DEPENDENCIES.md)
@@ -11,8 +13,11 @@
 - [Anleihen](13_BONDS.md)
 - [Positionsbuch und Neubewertung](14_PORTFOLIO.md)
 - [Analysekennzahlen](15_ANALYTICS.md)
+- [M2-Verifikationsbericht](20_M2_VERIFICATION.md)
 - [M1-Verifikationsbericht](16_M1_VERIFICATION.md)
 - [Beispiele](../examples/README.md)
 
 M1 umfasst numerisch verifizierte Aktien-, Options-, Anleihen- und Portfolio-APIs.
+M2 erweitert diese auf dem Milestone-Branch um das Portfolio Risk Lab;
+Veröffentlichungsabschluss wird in Issue #28 verfolgt.
 Konkrete Integrations-/Release-Nachweise stehen in GitHub-Issue #9. Keine empirische Marktvalidierung.

@@ -21,3 +21,19 @@ sind geprüft. Kein Konvergenztest nötig für die analytische Bewertungsformel.
 Die SciPy-Normal-CDF ist die einzige untypisierte Infrastrukturgrenze; ihr Ergebnis
 wird als Float64-Array zurückgegeben. Die übrige API bleibt strikt typgeprüft.
 Realwelt-Drift mu ist kein Bewertungsparameter. Marktvalidierung ist nicht erfolgt.
+
+## M2 – analytische Greeks (#22)
+
+`option_greeks(S, K, T, sigma, r, dividend_yield=q, kind="call")`
+liefert `OptionGreeks(delta, gamma, vega, theta, rho)` in der Broadcast-Form
+aller Eingaben. Theta pro verstrichenem Jahr; Vega/Rho je 1,0 Dezimaländerung,
+`vega_per_percent`/`rho_per_percent` je Prozentpunkt. Quotes je Underlying,
+kein impliziter Multiplikator. Die Greek-API erfordert S,K,T,sigma > 0;
+Preisbewertung unterstützt weiterhin null. Siehe [Verträge](18_M2_CONTRACTS.md).
+
+Red: `pytest tests/test_greeks.py` scheiterte nach intakter Installation am
+fehlenden `option_greeks`-Import. Green/Refactor: 147 Tests bestanden, ruff
+check/format und mypy grün. Differenzen verwenden für Spot einen relativ zum
+Kurs skalierten Schritt: absolute 1e-4-Währungsschritte verursachten bei Gamma
+Auslöschung; Toleranzen wurden nicht aufgeweitet. Paritätsableitungen und
+analytische ATM-Referenz prüfen unabhängig von den Preis-Differenzen.
