@@ -110,3 +110,12 @@ verwenden Anfangsaktienmenge und Anfangsspot mal Jahreskostensatz mal Zeitlänge
 das ist eine dokumentierte Rasterapproximation, kein Broker-Leihvertrag.
 Zinsen werden vor Leihekosten und Ereignissen gebucht. Nichtpositives Vermögen
 ist kein Simulationsfehler; relative Kennzahlen benötigen eine positive Basis.
+
+## ADR-009 – Hedge-Ausführung und Close-out (2026-10-08, #41)
+
+Optionsdelta wird zum Signalzeitpunkt berechnet; Zielaktienmenge wird erst am
+folgenden Rasterpunkt gehandelt. Ein Aktieninstrument pro Underlying ist allein
+für den Hedge reserviert. Bei letzter Optionsfälligkeit wird dieses Instrument
+nach Abrechnung zum aktuellen Spot glattgestellt; alte pending Hedgeorders
+verfallen. Damit ist Close-out ein explizites Ereignis ohne Zukunftszugriff.
+Schwellen messen absolute Aktienäquivalente, keine Gewichtsprozente.
