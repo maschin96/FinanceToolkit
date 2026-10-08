@@ -77,3 +77,18 @@ Entscheidungen, identische Eröffnungskosten, ungültige Termine/Regelkombinatio
 Raster-Sensitivität auf deterministisch linear steigenden Kursen: feinere
 Handelsmöglichkeiten ändern Trades und Endvermögen, sind keine numerische
 Fehlkonvergenz. Der Test prüft explizit, dass kein Raster-Invarianzversprechen gilt.
+
+## Offline-Beispiele (#27)
+
+`python -m finance_toolkit.risk_lab` erzeugt fünf Modellportfolios und
+nachvollziehbare CSV/JSON-Exporte. [Aufruf und Dateischemata](../examples/README.md).
+Risikometriken beziehen sich auf aggregierte terminale Portfolioverluste bei
+95 % Konfidenz; Szenarioschocks sind separat. Eine gemeinsame Währung EUR ist
+nur die Beispielkonvention, kein FX-Modell. Volatilitäts- und Zinsderivate sind
+je Dezimaländerung, Theta je Jahr; Kursschockachsen relativ.
+
+Red: fehlendes risk_lab-Modul und fehlende einmalige Finanzierungs-Spalte.
+Green: identische Seeds/Pfade/Eröffnungskosten, CSV/JSON-Vergleich gegen APIs,
+Numerik ohne Matplotlib-Import und drei PNG-Artefakte. Export-Profiling (100 Pfade)
+zeigte 7.800 wiederholte Vollarray-Gewichtsberechnungen; diese werden jetzt einmal
+pro Strategie berechnet. Die Exporttests prüfen unveränderte Werte.
