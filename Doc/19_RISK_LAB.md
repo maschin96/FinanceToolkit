@@ -38,3 +38,25 @@ Red: fehlender StressScenario-Import; zusätzlicher Regressionstest für
 prüfen Nullschock, Aktien-Handrechnung, ATM-Optionspreisreferenz, Nullkupon,
 Fälligkeiten und schrumpfende Fehler der lokalen Delta/Gamma-Näherung.
 Keine Wahrscheinlichkeiten, keine Interpretation als VaR/ES.
+
+## Pfadabhängige Ausführung (#25)
+
+`simulate_strategy(market, signal, initial_cash=..., initial_weights=...,
+fixed_fee=0, proportional_fee=0, lending_rate=0)` hat eine eigene `StrategyPaths`-
+Struktur mit Mengen/Trades/Gebühren/Umsatz (paths,times,assets). M1 bleibt erhalten.
+Gebühren und Umsatz sind positiv; Trades signed Stückzahlen. `wealth` ist Cash
+plus Aktienwerte; `weights` enthält Aktiengewichte, der Rest ist Cash.
+
+Ein `signal(StrategyState)` erhält aktuelle Zeit, readonly Kopien von Kursen und
+Mengen sowie Cash und Vermögen, liefert Zielstückzahlen oder None. Signale gelten
+am nächsten Rasterpunkt. Anfangsallokation sofort mit denselben Kosten;
+letzter Rasterpunkt löst keinen weiteren Signalaufruf aus. Built-in-Regeln sind
+zustandslos; eigene Callbacks müssen ebenfalls ohne Pfad-übergreifenden Zustand
+arbeiten. Verkaufs-/Kaufreihenfolge und Cashbegrenzung siehe Verträge.
+
+Red: fehlendes strategies-Modul. Green: Ein-Pfad-Handrechnung, verzögerte Trades,
+Prefix-Invarianz, Zustandskopien, Nullaufträge, Finanzierung, Cashknappheit,
+unfinanzierbare Kleinstverkäufe und Cashflow-Bilanzen. Unabhängige Cashbilanz:
+C(t)=C(0)+Summe(Finanzierung − Trade-Stückzahl*Preis − Gebühren).
+Nur Rundungsreste aus der berechneten Kaufobergrenze werden bis 1e-12 relativ
+auf null begrenzt, kein fachlich negatives Cash. Gewinne nicht vorausgesetzt.
