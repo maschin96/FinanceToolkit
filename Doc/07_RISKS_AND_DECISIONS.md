@@ -119,3 +119,13 @@ für den Hedge reserviert. Bei letzter Optionsfälligkeit wird dieses Instrument
 nach Abrechnung zum aktuellen Spot glattgestellt; alte pending Hedgeorders
 verfallen. Damit ist Close-out ein explizites Ereignis ohne Zukunftszugriff.
 Schwellen messen absolute Aktienäquivalente, keine Gewichtsprozente.
+
+## ADR-010 – Feste eigene Indexuniversen (2026-10-08, #46)
+
+Kursindex und Total Return konsumieren getrennte split-/dividendenadjustierte
+Serien, Corporate Actions nicht nochmals anwenden. Stückzahlen beziehen sich
+auf adjustierte Serien; kein Brokerbestand. Minor Quoteeinheiten explizit
+normalisieren, sonst eine gemeinsame Währung ohne FX. Strict Calendar default;
+Intersection nur mit dokumentierten Ausschlüssen. Monatssignale am ersten
+beobachteten Tag des neuen Monats und Trades in der Folgesitzung verhindern
+future-dependent Monatsende. Beiträge aus Anfangsbeständen reconciliieren Rendite.

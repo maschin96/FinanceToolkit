@@ -1,0 +1,11 @@
+{
+  "tickers": ["AAPL", "MSFT"],
+  "start": "2026-09-28",
+  "end": "2026-10-08",
+  "base_date": "2026-09-28",
+  "base_value": 100,
+  "weights": [0.5, 0.5],
+  "calendar_policy": "strict",
+  "rebalance": "buy_and_hold",
+  "repair": false
+}
