@@ -16,3 +16,18 @@ def test_heatmap_contains_numerical_grid(tmp_path):
     )
     np.testing.assert_array_equal(result, stress_grid(snap, [-0.2, 0, 0.2], [0, 0.1]))
     assert (tmp_path / "stress.png").read_bytes().startswith(b"\x89PNG")
+
+
+def test_heatmap_does_not_change_global_backend(tmp_path, monkeypatch):
+    matplotlib = pytest.importorskip("matplotlib")
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("global backend change")
+
+    monkeypatch.setattr(matplotlib, "use", forbidden)
+    plot_stress_heatmap(
+        PortfolioSnapshot(0, (Stock(),), [1], [100], 0, 0),
+        [0],
+        [0],
+        tmp_path / "stress.png",
+    )

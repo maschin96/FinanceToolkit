@@ -1,8 +1,9 @@
 # FinanceToolkit
 
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
-festverzinslichen Anleihen und gemischten Portfolios. **M1 / Version 0.1.0**
-implementiert den ersten vollständigen Funktionsumfang. Das Repository ist privat;
+festverzinslichen Anleihen und gemischten Portfolios. **M2 / Version 0.2.0**
+auf dem Milestone-Branch erweitert den stabilen M1-Funktionsumfang. Die M2-Release-
+Veröffentlichung erfolgt erst nach Integration und Zielcommit-CI gemäß Release-Prozess. Das Repository ist privat;
 es erfolgt keine Veröffentlichung auf PyPI.
 
 ## Funktionen
@@ -17,6 +18,10 @@ es erfolgt keine Veröffentlichung auf PyPI.
   Finanzierung, Kupons, Tilgung und einmalige Optionsabrechnung.
 - Portfolioverläufe, P&L, Renditen, Drawdown, aggregierter VaR und Expected Shortfall.
 - Offline-Beispiele, CSV/JSON-Exporte und optionale Diagramme.
+- Analytische Options-Greeks, Portfolio-Exposures und Anleihen-DV01/Konvexität.
+- Hypothetische Stressszenarien mit vollständiger Neubewertung und Heatmap.
+- Pfadabhängige Aktien-/Cash-Strategien: Buy-and-Hold, Kalender- und Schwellen-
+  Rebalancing mit verzögerter Ausführung, Gebühren und Cashbegrenzung.
 
 ## Installation und Beispiele
 
@@ -28,7 +33,13 @@ uv sync --locked --extra plots
 uv run --no-sync python -m finance_toolkit.examples --seed 42 --paths 1000 --output outputs/m1-demo --plot
 ```
 
-Ohne Diagramme: `uv sync --locked` und den Beispielaufruf ohne `--plot` ausführen.
+Das M2 Risk Lab:
+
+```sh
+uv run --no-sync python -m finance_toolkit.risk_lab --seed 42 --paths 1000 --output outputs/m2-demo --plot
+```
+
+[Risk-Lab-APIs und Grenzen](Doc/19_RISK_LAB.md). Ohne Diagramme: `uv sync --locked` und den Beispielaufruf ohne `--plot` ausführen.
 Installation nur der Laufzeitbibliothek: `uv sync --locked --no-dev`.
 `--locked` verhindert unbemerkte Dependency-Änderungen. Python-Patchversion und
 Plattform können variieren; Reproduzierbarkeit gilt bei gleichem Abhängigkeitsstand.
@@ -78,10 +89,11 @@ uv build
 ```
 
 Nach `uv sync` alternativ die virtuelle Umgebung aktivieren und `python -m ...`
-verwenden. Ohne `plots` ist ausschließlich der Diagrammtest sichtbar übersprungen;
+verwenden. Ohne `plots` sind ausschließlich die optionalen Diagrammtests sichtbar übersprungen;
 Release-CI installiert `plots` und prüft alle Tests und Beispiele ohne Auslassungen.
 CI prüft Python 3.11–3.13, Paketbau und frische Wheel-Installation außerhalb des
-Quellbaums. [Verifikationsbericht](Doc/16_M1_VERIFICATION.md) enthält Referenzen und
+Quellbaums. [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md) und
+[M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) enthält Referenzen und
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
 [Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
 

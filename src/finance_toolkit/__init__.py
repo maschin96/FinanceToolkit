@@ -1,4 +1,4 @@
-"""Finance Toolkit package; numerical models are added in milestone M1."""
+"""Finance Toolkit package; numerical models and the M2 Portfolio Risk Lab."""
 
 from importlib.metadata import version
 
