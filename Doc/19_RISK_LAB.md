@@ -22,3 +22,19 @@ Green: 71 betroffene Tests einschließlich Greeks, Bonds und Portfolio bestanden
 mypy und ruff grün. Nullkupon und unabhängig summierte Kupon-Cashflows dienen als
 Referenz; Gegenpositionen, Asset-Zuordnung und Multiplikator werden geprüft.
 Siehe [Verträge](18_M2_CONTRACTS.md) für Einheiten und Toleranzen.
+
+## Stressszenarien (#24)
+
+`stress_portfolio(snapshot, StressScenario(name, spot_shocks=..., volatility_shocks=...,
+rate_shock=...))` liefert Positionswerte, Positions-P&L und Gesamtwerte bei
+unverändertem Cash. Spot-Schocks relativ, Volatilitäts-/Zinsschocks absolute
+Dezimaländerungen. Scalar-Volatilitätsschocks betreffen alle Optionen;
+Positionsvektoren müssen bei Nichtoptionen null sein. Ungültige Schocks werden
+abgelehnt. `stress_grid(snapshot, spot_axis, volatility_axis)` liefert P&L mit
+Form (Volatilität, Spot), über identische vollständige Neubewertung.
+
+Red: fehlender StressScenario-Import; zusätzlicher Regressionstest für
+überlaufenden Zins bei Cash-only Snapshot zunächst rot. Green: Stress-Tests
+prüfen Nullschock, Aktien-Handrechnung, ATM-Optionspreisreferenz, Nullkupon,
+Fälligkeiten und schrumpfende Fehler der lokalen Delta/Gamma-Näherung.
+Keine Wahrscheinlichkeiten, keine Interpretation als VaR/ES.
