@@ -1,10 +1,10 @@
 # FinanceToolkit
 
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
-festverzinslichen Anleihen und gemischten Portfolios. **M2 / Version 0.2.0**
-auf dem Milestone-Branch erweitert den stabilen M1-Funktionsumfang. Die M2-Release-
-Veröffentlichung erfolgt erst nach Integration und Zielcommit-CI gemäß Release-Prozess. Das Repository ist privat;
-es erfolgt keine Veröffentlichung auf PyPI.
+festverzinslichen Anleihen und gemischten Portfolios. **M3 / Version 0.3.0**
+erweitert M2 um dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
+Strategievergleiche, optionale Yahoo-Marktdaten und eigene Aktienindizes.
+Das Repository und seine Release-Artefakte bleiben privat; keine PyPI-Veröffentlichung.
 
 ## Funktionen
 
@@ -45,6 +45,19 @@ Installation nur der Laufzeitbibliothek: `uv sync --locked --no-dev`.
 Plattform können variieren; Reproduzierbarkeit gilt bei gleichem Abhängigkeitsstand.
 [Beispiele und Parameter](examples/README.md) zeigen Änderungen an Zins, Laufzeit
 und Kupon sowie Protective Put, Covered Call und Anleihen-Zinsvergleiche.
+
+## M3 – Strategy & Hedging Lab
+
+```sh
+uv sync --locked --extra plots --extra yahoo
+uv run --no-sync python -m finance_toolkit.hedge_lab --paths 100 --steps 32 --seed 314 --output outputs/m3-hedge --plot
+uv run --no-sync python -m finance_toolkit.index_lab --config examples/m3_index_demo.json --demo --output outputs/m3-index --plot
+```
+
+Beide Beispiele sind offline. [Hedge-Lab](Doc/26_M3_HEDGE_LAB.md),
+[Yahoo-Daten und Nutzungsgrenzen](Doc/25_M3_YAHOO.md),
+[eigene Indizes](Doc/27_M3_CUSTOM_INDICES.md). Aktien-Shorts und Cashkredite
+benötigen explizite Freigabe; keine Margin- oder Brokeranbindung.
 
 ## Eigene Portfolios
 
@@ -92,8 +105,9 @@ Nach `uv sync` alternativ die virtuelle Umgebung aktivieren und `python -m ...`
 verwenden. Ohne `plots` sind ausschließlich die optionalen Diagrammtests sichtbar übersprungen;
 Release-CI installiert `plots` und prüft alle Tests und Beispiele ohne Auslassungen.
 CI prüft Python 3.11–3.13, Paketbau und frische Wheel-Installation außerhalb des
-Quellbaums. [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md) und
-[M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) enthält Referenzen und
+Quellbaums. [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
+[M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) und
+[M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) enthalten Referenzen und
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
 [Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
 
@@ -101,7 +115,8 @@ Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen
 
 GBM mit konstanter Drift/Volatilität; europäische Barausgleichsoptionen;
 ausfallfreie feste Kupons, regelmäßige Zahlungen und flache stetige Zinskurven.
-Aktien liefern Preisrenditen ohne Dividenden-Cashflows. Keine Live-Daten,
+Aktien liefern Preisrenditen ohne Dividenden-Cashflows. Yahoo-Daten sind optional,
+ohne garantierte Echtzeit. Keine
 Kalibrierung, Steuern, FX, Brokeranbindung, Margin-Engine, amerikanische Optionen,
 GUI oder externe Portfolio-Zu-/Abflüsse. Numerisch verifiziert, nicht empirisch
 gegen reale Marktdaten validiert.

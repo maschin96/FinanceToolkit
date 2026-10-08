@@ -1,4 +1,4 @@
-# M2-Verifikationsbericht – 0.2.0 vorbereitet
+# M2-Verifikationsbericht – 0.2.0
 
 ## Umfang und Integration
 
@@ -16,9 +16,11 @@
 #21–#27 wurden nach erfolgreicher aktueller Python-3.11–3.13-CI, eigenem
 Diff-Review und Prüfung auf Review-Anmerkungen integriert und mit PR-Verweis
 explizit geschlossen. Kein unabhängiger Reviewer verfügbar; keine externe
-Freigabe behauptet. #28 bleibt bis main-Zielcommit-CI, Tag und privaten
-Release-Artefakten offen. Der aktuelle Auftrag liefert den Milestone-Branch,
-veröffentlicht noch kein v0.2.0-Release und integriert keine M2-Funktionen in main.
+Freigabe behauptet. M2 ist über PR #38 in main integriert; tatsächlicher
+Zielcommit 05144b7e59c0c2ec0128c6d234f586cea3c4cb23 mit erfolgreicher
+[Python-3.11–3.13-CI](https://github.com/maschin96/FinanceToolkit/actions/runs/37753366082).
+[v0.2.0 mit privaten Wheel-/Quelldistributionsartefakten](https://github.com/maschin96/FinanceToolkit/releases/tag/v0.2.0)
+wurde am 2026-10-08 veröffentlicht; #28 und M2 sind geschlossen.
 
 ## Red – Green – Refactor
 
@@ -114,7 +116,5 @@ Zielgewichte verhindern. Eigene Signale dürfen keinen pfadübergreifenden Zusta
 führen; Built-in-Regeln sind zustandslos. Greek-API lehnt nichtglatte Grenzen
 explizit ab, Preis-API erhält sie. Große Arrays benötigen proportional Speicher.
 
-Vor Veröffentlichung main in milestone-m2 integrieren, den resultierenden Stand
-prüfen und einen Release-PR nach main erstellen. Nach Release-Merge CI am
-wirklichen main-Zielcommit, anschließend Tag v0.2.0 und private Artefakte.
-Erst danach #28 und M2 schließen. Keine PyPI-Veröffentlichung.
+Release-Integration, Zielcommit-CI, Tag und private Pakete sind abgeschlossen
+(siehe oben). Keine PyPI-Veröffentlichung.

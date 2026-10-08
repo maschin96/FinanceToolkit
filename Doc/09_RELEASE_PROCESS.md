@@ -28,3 +28,13 @@ milestone-m2 integrieren; Pflichtumfang, Dokumentation, CI und Review-Anmerkunge
 am aktuellen Stand prüfen. Release-PR nach main, Zielcommit-CI prüfen, danach
 v0.2.0 taggen und Wheel/Quelldistribution im privaten Release ablegen.
 Ein Umsetzungsauftrag auf dem Milestone-Branch veröffentlicht noch kein Release.
+
+## M3 / v0.3.0
+
+Pflicht-Issue-PRs #48–#55 und der Verifikations-PR zielen auf
+`codex/milestone-m3`. Gesamtverifikation in [M3-Bericht](28_M3_VERIFICATION.md).
+Vor Release main übernehmen und erneut prüfen; Release-PR ausdrücklich nach
+main. Nach Merge tatsächliche main-Zielcommit-CI für Python 3.11–3.13 prüfen,
+erst danach v0.3.0 taggen und Wheel/Quelldistribution im privaten Release ablegen.
+#47 und M3 erst nach vollständigem Abschluss schließen. M2-Nachweise verbleiben
+in #28. Kein unabhängiger Reviewer verfügbar; eigenen Review transparent nennen.
