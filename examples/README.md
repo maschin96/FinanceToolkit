@@ -57,7 +57,7 @@ Zeitpunkte und Bewertungsregeln stehen in [Portfolio-Dokumentation](../Doc/14_PO
 
 ## M2 – Portfolio Risk Lab
 
-Auf dem M2-Branch nach Installation:
+Nach Installation:
 
 ```sh
 uv run --no-sync python -m finance_toolkit.risk_lab --seed 42 --paths 1000 --steps 12 --output outputs/m2-demo --plot
@@ -89,3 +89,17 @@ fünf Aktien und 50 Cash. Bei Kurs 20 Vermögen 150; ein 50-%-Signal fordert
 bleibt 150; eine Verkaufsgebühr 1 reduziert es auf 149. Das Beispiel exportiert
 wirklich ausgeführte Mengen, sodass Kosten- und Cashbegrenzungen sichtbar sind.
 [API und Grenzen](../Doc/19_RISK_LAB.md), [Konventionen](../Doc/18_M2_CONTRACTS.md).
+
+## M3 – Strategie-, Hedge- und Indexbeispiele
+
+```sh
+uv run --no-sync python -m finance_toolkit.hedge_lab --paths 100 --steps 32 --seed 314 --output outputs/m3-hedge --plot
+uv run --no-sync python -m finance_toolkit.index_lab --config examples/m3_index_demo.json --demo --output outputs/m3-index --plot
+```
+
+Das Hedge-Lab exportiert gemeinsame Basispfade, Varianten, Buch-/Cash-Ledger
+und Attribution; das Indexdemo nutzt originale synthetische Daten.
+[Parameter und Artefakte](../Doc/26_M3_HEDGE_LAB.md),
+[Indexkonfiguration und Referenzen](../Doc/27_M3_CUSTOM_INDICES.md).
+Online-Yahoo-Beispiele und explizites Cache-Replay stehen im
+[Yahoo-Vertrag](../Doc/25_M3_YAHOO.md); Downloads bleiben außerhalb von Git.

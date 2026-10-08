@@ -28,10 +28,10 @@ von Paket und Tests, nicht als unbelegte Liefertermine.
 
 ## M2 – Portfolio Risk Lab und spätere Erweiterungen
 
-M2 ist als [Portfolio Risk Lab](17_M2_ROADMAP.md) auf dem Milestone-Branch umgesetzt: Greeks,
+M2 ist als [Portfolio Risk Lab](17_M2_ROADMAP.md) in main integriert (PR #38): Greeks,
 Portfolio-Exposures, Stressszenarien und Aktien-/Cash-Rebalancing mit Kostenvergleich.
-[Verifikation und Release-Stand](20_M2_VERIFICATION.md); #28 bleibt bis zur
-Veröffentlichung offen.
+[Verifikation und Release-Stand](20_M2_VERIFICATION.md); #28 und M2 sind nach
+Veröffentlichung von v0.2.0 geschlossen.
 Kalibrierung aus Marktdaten, stochastische Zinsen, amerikanische Optionen,
 empirisches Backtesting, Optimierung, FX und Oberfläche bleiben spätere Erweiterungen.
 
@@ -42,3 +42,11 @@ sind geprüft und in codex/milestone-m1 integriert (PRs #12–#17).
 M1 ist mit Release-PR #19 in main integriert; v0.1.0 wurde am 2026-10-07
 veröffentlicht und Issue #9 geschlossen. Damit ist die Voraussetzung für den
 Beginn von M2 erfüllt.
+
+## M3 – Strategy & Hedging Lab
+
+Pflichtumfang #39–#46 über PRs #48–#55 integriert: Optionsbuch, Finanzierung,
+Delta-Hedging, Optionsstrategien, Attribution, gekoppelte Vergleiche, Yahoo-
+Adapter und eigene Indizes. [Gesamtverifikation](28_M3_VERIFICATION.md) und
+Release-Abschluss #47. HTML-Bericht G ist nicht beauftragt. Spätere oben genannte
+Erweiterungen bleiben außerhalb des aktuellen Pflichtumfangs.

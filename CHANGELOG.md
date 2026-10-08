@@ -1,6 +1,20 @@
 # Änderungen
 
-## 0.2.0 – M2 vorbereitet, noch nicht veröffentlicht
+## 0.3.0 – 2026-10-08
+
+- Dynamisches Optionsbuch mit pfadabhängigen Orders, Settlement und Cashbilanz.
+- Explizite Kredit-/Anlagezinsen, Aktien-Shorts und Aktienleihekosten.
+- Verzögertes Kalender-/Schwellen-Delta-Hedging mit gekoppelter Rasterreferenz.
+- Protective Put, Covered Call, Collar und vertikale Optionsspreads.
+- Exakte P&L-Reconciliation und lokale Greek-Näherung mit Ereignis-/Restfehlern.
+- Reproduzierbares Hedge-Lab mit gemeinsamen Pfaden, CSV/JSON und PNG.
+- Optionaler Yahoo-Adapter mit Einheiten-/Zeit-Audit, Cache und Offline-Replay.
+- Eigene Kurs-/Total-Return-Indizes mit verzögertem Rebalancing und Offline-Demo.
+- Vollständige Python-3.11–3.13-CI mit allen vier Offline-CLIs und Wheel-Prüfung.
+
+Keine empirische Validierung, keine garantierte Echtzeit oder Marktdatenrechte.
+
+## 0.2.0 – 2026-10-08
 
 - Analytische BSM-Greeks mit Broadcasting und expliziten Einheiten/Grenzen.
 - Portfolio-Exposures je Position/Underlying; Anleihen-DV01 und Konvexität.
@@ -24,5 +38,5 @@ Erster vollständiger M1-Funktionsumfang:
 - Python 3.11–3.13, gelockte Abhängigkeiten, Tests, Lint/Format, strikte Typprüfung,
   Paketbau und frische Wheel-Prüfung in der CI-Matrix.
 
-Numerisch verifiziert; keine empirische Marktvalidierung. Private GitHub-Artefakte,
+Numerisch verifiziert; keine empirische Marktvalidierung. Öffentliche GitHub-Artefakte,
 keine PyPI-Veröffentlichung. Grenzen und Referenzen im M1-Verifikationsbericht.

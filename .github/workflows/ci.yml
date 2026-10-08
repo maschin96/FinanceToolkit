@@ -40,6 +40,8 @@ jobs:
         run: |
           uv run --no-sync python -m finance_toolkit.examples --paths 100 --output /tmp/finance-demo --plot
           uv run --no-sync python -m finance_toolkit.risk_lab --paths 100 --output /tmp/finance-risk-lab --plot
+          uv run --no-sync python -m finance_toolkit.hedge_lab --paths 20 --steps 16 --output /tmp/finance-hedge-lab --plot
+          uv run --no-sync python -m finance_toolkit.index_lab --config examples/m3_index_demo.json --demo --output /tmp/finance-index-lab --plot
       - name: Lint
         run: uv run --no-sync python -m ruff check .
       - name: Formatting
@@ -62,3 +64,5 @@ jobs:
           /tmp/finance-wheel/bin/python -m pytest finance-wheel-tests
           /tmp/finance-wheel/bin/python -m finance_toolkit.examples --paths 20 --output /tmp/wheel-m1-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.risk_lab --paths 20 --output /tmp/wheel-m2-demo --plot
+          /tmp/finance-wheel/bin/python -m finance_toolkit.hedge_lab --paths 20 --steps 16 --output /tmp/wheel-m3-hedge --plot
+          /tmp/finance-wheel/bin/python -m finance_toolkit.index_lab --config "$GITHUB_WORKSPACE/examples/m3_index_demo.json" --demo --output /tmp/wheel-m3-index --plot
