@@ -19,7 +19,7 @@ explizit geschlossen. Kein unabhängiger Reviewer verfügbar; keine externe
 Freigabe behauptet. M2 ist über PR #38 in main integriert; tatsächlicher
 Zielcommit 05144b7e59c0c2ec0128c6d234f586cea3c4cb23 mit erfolgreicher
 [Python-3.11–3.13-CI](https://github.com/maschin96/FinanceToolkit/actions/runs/37753366082).
-[v0.2.0 mit privaten Wheel-/Quelldistributionsartefakten](https://github.com/maschin96/FinanceToolkit/releases/tag/v0.2.0)
+[v0.2.0 mit öffentlichen Wheel-/Quelldistributionsartefakten](https://github.com/maschin96/FinanceToolkit/releases/tag/v0.2.0)
 wurde am 2026-10-08 veröffentlicht; #28 und M2 sind geschlossen.
 
 ## Red – Green – Refactor
@@ -116,5 +116,5 @@ Zielgewichte verhindern. Eigene Signale dürfen keinen pfadübergreifenden Zusta
 führen; Built-in-Regeln sind zustandslos. Greek-API lehnt nichtglatte Grenzen
 explizit ab, Preis-API erhält sie. Große Arrays benötigen proportional Speicher.
 
-Release-Integration, Zielcommit-CI, Tag und private Pakete sind abgeschlossen
+Release-Integration, Zielcommit-CI, Tag und öffentliche Pakete sind abgeschlossen
 (siehe oben). Keine PyPI-Veröffentlichung.

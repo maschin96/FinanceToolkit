@@ -177,5 +177,5 @@ Alle Pflichtpakete, Dokumentation, CI am aktuellen Stand und Review-Anmerkungen
 müssen vor dem Release-PR nach main abgeschlossen sein. Fehlendes unabhängiges
 Review transparent nennen. main zuvor im Milestone integrieren und erneut prüfen;
 nach Release-Merge CI am tatsächlichen main-Zielcommit prüfen, erst dann v0.2.0
-taggen und private Release-Artefakte veröffentlichen. Release-Issue bleibt bis
+taggen und öffentliche Release-Artefakte veröffentlichen. Release-Issue bleibt bis
 dahin offen. Keine PyPI-Veröffentlichung; keine unbelegten Terminversprechen.

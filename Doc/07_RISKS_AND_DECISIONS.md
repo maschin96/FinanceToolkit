@@ -129,3 +129,12 @@ normalisieren, sonst eine gemeinsame Währung ohne FX. Strict Calendar default;
 Intersection nur mit dokumentierten Ausschlüssen. Monatssignale am ersten
 beobachteten Tag des neuen Monats und Trades in der Folgesitzung verhindern
 future-dependent Monatsende. Beiträge aus Anfangsbeständen reconciliieren Rendite.
+
+## ADR-015 – Öffentliche Repository- und Release-Sichtbarkeit (2026-10-08, #47)
+
+GitHub meldet das Repository als öffentlich. Der Eigentümer hat ausdrücklich
+entschieden, diese Sichtbarkeit zu erhalten und die bislang abweichende
+Dokumentation anzupassen. GitHub-Tags und Paketartefakte werden öffentlich
+veröffentlicht; keine Veröffentlichung auf PyPI. Öffentliche Sichtbarkeit
+vergibt keine Open-Source-Lizenz und keine Weiterverteilungsrechte an Yahoo-
+Marktdaten. Private Datensätze, Caches und Zugangsdaten bleiben ausgeschlossen.

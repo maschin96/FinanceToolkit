@@ -18,7 +18,7 @@ integriert und explizit geschlossen. Kein unabhängiger Reviewer verfügbar;
 keine externe Freigabe behauptet. HTML-Bericht G ist nicht beauftragt.
 M2 ist über PR #38 in main integriert; dessen Zielcommit-CI ist erfolgreich:
 [Run 37753366082](https://github.com/maschin96/FinanceToolkit/actions/runs/37753366082).
-M2-Tag und private Pakete: [v0.2.0](https://github.com/maschin96/FinanceToolkit/releases/tag/v0.2.0).
+M2-Tag und öffentliche Pakete: [v0.2.0](https://github.com/maschin96/FinanceToolkit/releases/tag/v0.2.0).
 
 ## Wissenschaftliche Nachweise und TDD
 
@@ -101,7 +101,7 @@ in Issue #47 verlinkt; lokale Prüfungen ersetzen diese Matrix nicht.
 
 Vor Release wird main in milestone-m3 übernommen, erneut geprüft, dann der
 Release-PR nach main integriert. Erst nach erfolgreicher tatsächlicher main-CI
-werden v0.3.0 und private Wheel-/Quelldistributionsartefakte veröffentlicht und
+werden v0.3.0 und öffentliche Wheel-/Quelldistributionsartefakte veröffentlicht und
 #47/M3 geschlossen. Keine PyPI-Veröffentlichung.
 
 ## Grenzen

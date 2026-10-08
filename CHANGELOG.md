@@ -38,5 +38,5 @@ Erster vollständiger M1-Funktionsumfang:
 - Python 3.11–3.13, gelockte Abhängigkeiten, Tests, Lint/Format, strikte Typprüfung,
   Paketbau und frische Wheel-Prüfung in der CI-Matrix.
 
-Numerisch verifiziert; keine empirische Marktvalidierung. Private GitHub-Artefakte,
+Numerisch verifiziert; keine empirische Marktvalidierung. Öffentliche GitHub-Artefakte,
 keine PyPI-Veröffentlichung. Grenzen und Referenzen im M1-Verifikationsbericht.

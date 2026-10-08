@@ -4,7 +4,7 @@ Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
 festverzinslichen Anleihen und gemischten Portfolios. **M3 / Version 0.3.0**
 erweitert M2 um dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
 Strategievergleiche, optionale Yahoo-Marktdaten und eigene Aktienindizes.
-Das Repository und seine Release-Artefakte bleiben privat; keine PyPI-Veröffentlichung.
+Das Repository und seine Release-Artefakte sind öffentlich; keine PyPI-Veröffentlichung.
 
 ## Funktionen
 
