@@ -50,3 +50,30 @@ fehlte der License-Metadateneintrag, die enthaltene MIT-Lizenz wurde gelesen.
 Binärwheels (z.B. curl-cffi/lxml) bringen zusätzliche Drittkomponentenhinweise
 mit; diese nicht entfernen, bei separater Bündelung vollständig prüfen.
 Softwarelizenzen gewähren keine Marktdatenrechte; siehe [Yahoo-Vertrag](25_M3_YAHOO.md).
+
+## Verifizierte Installationsprofile (#63)
+
+`uv sync --locked` installiert Laufzeitkern (NumPy/SciPy) und Entwicklungswerkzeuge,
+ohne optionale Extras. `uv sync --locked --no-dev` installiert nur den Laufzeitkern;
+pytest ist dann bewusst nicht verfügbar. Für die vollständige Entwicklungs- und
+Release-Prüfung `uv sync --locked --extra plots --extra yahoo` verwenden. Eine
+frische isolierte Basisumgebung ist mit `UV_PROJECT_ENVIRONMENT=/tmp/finance-core`
+vor beiden `uv sync`-/`uv run`-Aufrufen möglich; siehe README.
+
+Der Basis-CI-Job auf Python 3.13 prüft, dass Matplotlib, pandas und yfinance
+tatsächlich fehlen, und führt die gesamte Suite mit sichtbaren Übersprüngen aus.
+Nur sechs konkrete Diagrammtests dürfen übersprungen werden (M1-Beispiele,
+Hedge-Lab, Index-Lab, Risk-Lab und zwei Stress-Heatmap-Tests). Der JUnit-Bericht
+wird gegen diese Namensliste geprüft; numerische Fehler oder zusätzliche
+Übersprünge sind Fehler des Jobs. Numerische Hedge-Exportnachweise laufen
+unabhängig vom Diagrammtest weiter. Zusätzlich blockieren Tests alle optionalen
+Imports in einem frischen Prozess und prüfen sämtliche Paketimporte sowie die
+vier numerischen Offline-CLIs mit ihren Pflichtdateien. Die Index-Demo ist
+synthetisch und funktioniert auch bei Wheel-Prüfung außerhalb des Repositorys.
+Yahoo-Cache-Replay bleibt durch die vorhandenen Offline-Tests abgedeckt.
+
+Die vollständige Python-3.11–3.13-Matrix, Diagramm-Smokes und Wheel-Prüfungen
+bleiben verpflichtend. Ihr Testbericht darf keinen Übersprung enthalten.
+Keine neue Abhängigkeit und keine Änderung von Versionslocks, Tokenrechten
+oder Action-Pins. Dies ist Installations-/Adapterverifikation, keine empirische
+Marktvalidierung oder Änderung numerischer Toleranzen.

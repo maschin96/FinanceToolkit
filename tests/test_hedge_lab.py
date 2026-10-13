@@ -124,6 +124,8 @@ def test_coupled_comparison_common_opening_and_hand_control(tmp_path):
     assert (tmp_path / "comparison.csv").is_file()
     assert (tmp_path / "wealth.csv").is_file()
     assert (tmp_path / "strategies.csv").is_file()
+    assert (tmp_path / "market.csv").is_file()
+    assert (tmp_path / "ledgers.csv").is_file()
     assert (tmp_path / "hedge" / "calendar" / "attribution.json").is_file()
 
 
@@ -171,9 +173,8 @@ def test_invalid_cases(case):
 
 
 def test_optional_plot_uses_same_results(tmp_path):
+    pytest.importorskip("matplotlib")
     market = GBMPaths(np.linspace(0, 1, 5), np.full((1, 5, 1), 100.0))
     result = compare_hedges(market, (ComparisonCase("none"),), initial_cash=1000)
     export_comparison(result, tmp_path, plot=True)
     assert (tmp_path / "comparison.png").read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
-    assert (tmp_path / "market.csv").is_file()
-    assert (tmp_path / "ledgers.csv").is_file()
