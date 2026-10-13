@@ -139,6 +139,70 @@ veröffentlicht; keine Veröffentlichung auf PyPI. Öffentliche Sichtbarkeit
 vergibt keine Open-Source-Lizenz und keine Weiterverteilungsrechte an Yahoo-
 Marktdaten. Private Datensätze, Caches und Zugangsdaten bleiben ausgeschlossen.
 
+## ADR-012 – Einheitliche Fälligkeitszuordnung in der Attribution (2026-10-13, #58)
+
+`explain_option_move` verwendet dieselbe absolute Zuordnungstoleranz von
+1e-10 Jahren wie das Optionsbuch. Anfang und Ende innerhalb dieser Toleranz
+werden für Preis und Ereignisflag auf die Vertragsfälligkeit gesetzt. Negative
+oder umgekehrte Originalzeiten bleiben ungültig; echte Zeiten nach Fälligkeit
+werden abgelehnt. Das Export-Raster bleibt unverändert. Ein akzeptierter
+Barausgleich erhält unabhängig vom Payoff ein Ereignisflag und null
+Taylor-Komponenten; die tatsächliche Bewegung bleibt im Ereignisrest.
+Keine Aufweitung der Toleranz, Änderung der Finanzierungsintervalle oder
+zusätzliche Auszahlung.
+
+## ADR-013 – Endliche Ergebnisverträge und Nettoaggregation (2026-10-13, #60)
+
+Attributionen, Strategie-Payoffs, Gesamtvermögen, Gewichte und Vergleichs-
+kennzahlen liefern endliche Ergebnisse oder konkrete `ValueError`. NumPy-
+und Python-Überläufe werden an diesen Berechnungsgrenzen übersetzt; stille
+inf/nan-Ergebnisse sind nicht gültig. Keine wirtschaftlichen Parameterlimits,
+Aufweitung fachlicher Toleranzen oder Ablehnung gewöhnlicher negativer Vermögen.
+Nicht darstellbare Einzelkomponenten können konservativ abgelehnt werden,
+selbst wenn ihre ideale mathematische Nettosumme endlich wäre.
+
+Für Vermögen werden Cash und signed Positionen gemeinsam betrachtet. Bei
+Überlauf der gewöhnlichen Summe werden nur betroffene Ergebnisse exakt mit
+`fractions.Fraction` summiert und einmal in Float64 konvertiert. Unbetroffene
+Ergebnisse behalten ihre bisherige Rundung. Reine Skalierung wäre unzureichend:
+kleine Reste können beim Teilen durch große Bruttowerte verschwinden. Der
+Fallback ist eine Korrektheitsmaßnahme für Extremfälle; Performancearbeit
+und wiederholte Vermögensberechnung bleiben gesondert in #65.
+
+## ADR-014 – BSM-Zweige nur für relevante Elemente auswerten (2026-10-13, #61)
+
+Broadcasting und Eingabevalidierung gelten für alle Elemente. Die Bewertung
+trennt Verfall, Null-Spot, Null-Volatilität und den positiven analytischen
+Bereich durch Boolesche Auswahl, bevor deren Zwischenwerte berechnet werden.
+`np.where` allein würde beide Zweige auswerten. Endliche, aber extreme r/q/sigma
+dürfen einen davon unabhängigen Verfallspayoff oder Null-Spot-Call nicht
+verhindern. Der Null-Spot-Put benötigt nur den Strike-Discount; Null-Volatilität
+nur die beiden diskontierten Legs. Tatsächlich nicht darstellbare benötigte
+Zwischen-/Endwerte bleiben Fehler. Keine Änderung der BSM-Formel, Greeks-
+Domäne, Toleranzen oder Preis-/Dividendenkonventionen.
+
+## ADR-015 – Sitzungsdatum als Yahoo-Intervallvertrag (2026-10-13, #62)
+
+Daily-Barlabels werden für den Requestvertrag in `History.timezone` konvertiert
+und anhand des lokalen Sitzungsdatums gegen start-inklusive/end-exklusive
+geprüft. UTC-Datum oder Abrufzeit wären bei Börsenzeitzonen/DST ungeeignet.
+Online und Replay verwenden dieselbe Prüfung, vor jedem Online-Cache-Schreiben.
+Hash und Requestidentität ersetzen die fachliche Intervallprüfung nicht.
+Ungültige Sessions sind symbolbezogene `DataError`; gültige Lücken bleiben
+unverändert. Kein Börsenkalender, Füllen oder neuer Cache-Schemawechsel.
+
+## ADR-016 – Begrenzte CLI-Fehlergrenzen (2026-10-13, #64)
+
+Die fünf CLIs behandeln erwartete Fach-/Eingabefehler (`ValueError`), Provider-
+fehler (`DataError`), Dateifehler (`OSError`) und fehlende optionale Importe
+mit Exitcode 1 und knapper stderr-Meldung. Syntax-/Parserfehler bleiben 2,
+Erfolg 0 und Yahoo-Polling-Abbruch 130. YahooClient-Konstruktion gehört in
+diese Grenze, damit ungültige Timeout-/Retrywerte keinen Traceback auslösen.
+Index-JSON-Typen und Pflichtfelder werden vor Providerzugriff ausdrücklich
+geprüft; Symbole werden nur als Strings normalisiert. Ein pauschales Abfangen
+von `TypeError`/`KeyError` am Index-CLI-Ende entfällt, damit interne Programmier-
+fehler sichtbar bleiben. Bibliotheksverträge und gültige Exportwerte unverändert.
+
 ## Planungsentscheidung M5 – Textual als optionaler TUI-Adapter (2026-10-13, #73)
 
 Der Eigentümer hat Textual für die nächste Terminal-App bestätigt.

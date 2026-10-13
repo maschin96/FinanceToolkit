@@ -8,12 +8,15 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from finance_toolkit._numerics import finite_result, numeric_errors
 from finance_toolkit._validation import finite_float
+from finance_toolkit.instruments.bonds import TIME_TOLERANCE
 from finance_toolkit.instruments.options import black_scholes, option_greeks
 from finance_toolkit.options_book import BookPaths
 from finance_toolkit.portfolio import EuropeanOption, Stock
 
 
+@numeric_errors("option attribution")
 def explain_option_move(
     option: EuropeanOption,
     *,
@@ -32,12 +35,20 @@ def explain_option_move(
     Local Taylor: delta*dS + gamma*dS²/2 + vega*dSigma + theta*dt + rho*dr.
     Decimal annual sigma/r changes; elapsed time years. No cross/higher Greeks.
     At expiry/non-smooth beginning, no Taylor is claimed: components zero and
-    full actual movement is explicitly an event residual. Beyond expiry reject.
+    full actual movement is explicitly an event residual. Endpoints within the
+    book's 1e-10 year matching tolerance are treated as exact expiry. Negative,
+    reversed or genuinely post-expiry times are rejected before pricing.
     """
     quantity = finite_float(quantity, "quantity")
     time_start = finite_float(time_start, "time_start")
     time_end = finite_float(time_end, "time_end")
-    if not 0 <= time_start <= time_end <= option.maturity:
+    if not 0 <= time_start <= time_end:
+        raise ValueError("times must be ordered within option life")
+    if abs(time_start - option.maturity) <= TIME_TOLERANCE:
+        time_start = option.maturity
+    if abs(time_end - option.maturity) <= TIME_TOLERANCE:
+        time_end = option.maturity
+    if time_end > option.maturity:
         raise ValueError("times must be ordered within option life")
     start = float(
         black_scholes(
@@ -62,6 +73,7 @@ def explain_option_move(
         )
     )
     scale = quantity * option.multiplier
+    finite_result(scale, "option attribution scale")
     actual = scale * (end - start)
     result: dict[str, float | bool] = {
         name: 0.0 for name in ("delta", "gamma", "vega", "theta", "rho")
@@ -94,6 +106,10 @@ def explain_option_move(
         float(result[x]) for x in ("delta", "gamma", "vega", "theta", "rho")
     )
     result.update(actual=actual, residual=actual - approximation, event=event)
+    finite_result(
+        [float(value) for name, value in result.items() if name != "event"],
+        "option attribution components",
+    )
     return result
 
 
@@ -123,21 +139,24 @@ class Attribution:
     relative_pnl: list[list[float | None]]
 
     @property
+    @numeric_errors("attribution approximation")
     def approximation(self) -> NDArray[np.float64]:
-        return np.asarray(
+        return finite_result(
             self.delta + self.gamma + self.vega + self.theta + self.rho,
-            dtype=np.float64,
+            "attribution approximation",
         )
 
     @property
+    @numeric_errors("attribution reconciliation")
     def reconciled(self) -> NDArray[np.float64]:
-        return np.asarray(
+        return finite_result(
             (self.market + self.execution - self.fees - self.borrow).sum(axis=-1)
             + self.financing,
-            dtype=np.float64,
+            "attribution reconciliation",
         )
 
 
+@numeric_errors("book attribution")
 def attribute_book(book: BookPaths) -> Attribution:
     """Reconcile actual book intervals using unchanged beginning holdings.
 
@@ -193,10 +212,11 @@ def attribute_book(book: BookPaths) -> Attribution:
                         array[p, t, j] = float(components[name])
                     events[p, t, j] = bool(components["event"])
     residual = market - delta - gamma - vega - theta - rho
-    pnl = np.diff(book.wealth, axis=1)
+    wealth = book.wealth
+    pnl = np.diff(wealth, axis=1)
     relative = [
         [
-            float(pnl[p, t] / book.wealth[p, t]) if book.wealth[p, t] > 0 else None
+            float(pnl[p, t] / wealth[p, t]) if wealth[p, t] > 0 else None
             for t in range(shape[1])
         ]
         for p in range(shape[0])
@@ -218,6 +238,8 @@ def attribute_book(book: BookPaths) -> Attribution:
         events,
         relative,
     )
+    for array in (market, execution, delta, gamma, vega, theta, rho, residual, pnl):
+        finite_result(array, "book attribution components")
     if not np.allclose(result.reconciled, pnl, rtol=1e-12, atol=1e-10):
         raise ValueError("book P&L does not reconcile")
     return result
@@ -226,6 +248,7 @@ def attribute_book(book: BookPaths) -> Attribution:
 def export_attribution(result: Attribution, directory: Path) -> None:
     """Write inspectable position and portfolio components; null relative bases."""
     directory.mkdir(parents=True, exist_ok=True)
+    reconciled = result.reconciled
     names = (
         "market",
         "execution",
@@ -244,7 +267,7 @@ def export_attribution(result: Attribution, directory: Path) -> None:
     data.update(
         times=result.times.tolist(),
         financing=result.financing.tolist(),
-        pnl=result.reconciled.tolist(),
+        pnl=reconciled.tolist(),
         relative_pnl=result.relative_pnl,
         units={
             "values": "currency",
@@ -284,7 +307,7 @@ def export_attribution(result: Attribution, directory: Path) -> None:
                             j,
                             *[getattr(result, name)[p, t, j] for name in names],
                             result.financing[p, t],
-                            result.reconciled[p, t],
+                            reconciled[p, t],
                             result.relative_pnl[p][t],
                         ]
                     )

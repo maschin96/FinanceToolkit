@@ -7,6 +7,7 @@ from numbers import Integral
 import numpy as np
 from numpy.typing import NDArray
 
+from finance_toolkit._numerics import finite_result, net_wealth, numeric_errors
 from finance_toolkit._validation import finite_array, finite_float
 from finance_toolkit.instruments.bonds import TIME_TOLERANCE
 from finance_toolkit.instruments.options import black_scholes, option_payoff
@@ -86,14 +87,16 @@ class BookPaths:
 
     @property
     def wealth(self) -> NDArray[np.float64]:
-        return np.asarray(self.cash + self.values.sum(axis=-1), dtype=np.float64)
+        """Finite cash plus signed position values; ValueError on net overflow."""
+        return net_wealth(self.cash, self.values)
 
     @property
+    @numeric_errors("book weights")
     def weights(self) -> NDArray[np.float64]:
         """Signed position weights; undefined for nonpositive wealth."""
         if np.any(self.wealth <= 0):
             raise ValueError("weights require positive wealth")
-        return np.asarray(self.values / self.wealth[..., None], dtype=np.float64)
+        return finite_result(self.values / self.wealth[..., None], "book weights")
 
 
 def _readonly(value: NDArray[np.float64]) -> NDArray[np.float64]:

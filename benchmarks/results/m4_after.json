@@ -1,0 +1,130 @@
+{
+  "cases": [
+    {
+      "attribution": {
+        "calls": {
+          "net_wealth": 1,
+          "reconciled": 1,
+          "wealth": 1
+        },
+        "seconds": 0.00027550000000000003
+      },
+      "attribution_sha256": "dd48280b0b666a38459d6f5979dd97101c513b1bf432cf0670cfb6ae65bb92f7",
+      "comparison_export": {
+        "calls": {
+          "net_wealth": 12,
+          "reconciled": 12,
+          "wealth": 12
+        },
+        "seconds": 0.5787586130000001
+      },
+      "export_sha256": {
+        "comparison.csv": "8b0e7503524cf5a12258d73d9fbb32059f6d7de4cadc02d634f0e3e1a27b4057",
+        "comparison.json": "781abbcdd611ab897f39ce31661faa9e78ff8627f04a790d0b9e5d7702836698",
+        "hedge/unhedged/attribution.csv": "6045fd79d8face81a59ba6efafe5f66ff63de362b3c84c3a1b459671d73f75c6",
+        "hedge/unhedged/attribution.json": "34543aef38f4698f2a47c85d1a5669e2a1230d6fd23db40ac9934fef87a74d67",
+        "ledgers.csv": "44d47f2f843ed809fc4c88948321da7b545d0fa691089b3d3decc7e0fc94eda2",
+        "market.csv": "bc43e1ea0198e58efe864899266219ee4ee8314aa8fc287642f67c1867f9c820",
+        "strategies.csv": "db5d379695c8c904097c6011bd794174a0b2247a02f86e66f5262116dbb894a7",
+        "strategy/bear_put/attribution.csv": "ef8747418ce91d29b00d3f2946888f5cd77a38210dd0d081792006ebc3d0d2c6",
+        "strategy/bear_put/attribution.json": "437afe197da415bead7a2ae8dbeec56a1347e9c06fcd5a6f8f9f1f41b0a89daa",
+        "strategy/bull_call/attribution.csv": "2e4a4e417c4c36d0578a432beb88bf41452deec7400f24adbd3362be14c8e027",
+        "strategy/bull_call/attribution.json": "332e015ce676321526b25dab74228236a130fd3e450659e485de4157f84f7562",
+        "strategy/collar/attribution.csv": "90125fa22e85f52c0f8d31210f4f63f200af36ed59f3983e22b1fbcea0a4f325",
+        "strategy/collar/attribution.json": "e59f9dc6a531935ab8cc73bb65a6cb133e0eb338d7fa7ced16af49cc18176756",
+        "strategy/covered_call/attribution.csv": "fca888353b74b1665a844411068b668ba3743992816009228e7d71cd34e8dbf4",
+        "strategy/covered_call/attribution.json": "ecf978b746662e920152751f090df4b39774ee5b8f8541fb2889fa92fe7a5039",
+        "strategy/protective_put/attribution.csv": "59926347e55a3e3ef0527500fc5f9fa2af3618b12d2c2a527cf98ad63f7c7852",
+        "strategy/protective_put/attribution.json": "5532105943a4e279a3fabe1e3ad3ead41c754c7865949938d56c472f5d9084e6",
+        "wealth.csv": "ff147a66bba34bf0f68723717d95e3a78fd7b9290df086a36791d5123703ead4"
+      },
+      "paths": 20
+    },
+    {
+      "attribution": {
+        "calls": {
+          "net_wealth": 1,
+          "reconciled": 1,
+          "wealth": 1
+        },
+        "seconds": 0.0005095410000000001
+      },
+      "attribution_sha256": "e0df85dd506ead7652db58940631114f97610d2b7e7b4e74ad6926ac6d5ceba7",
+      "comparison_export": {
+        "calls": {
+          "net_wealth": 12,
+          "reconciled": 12,
+          "wealth": 12
+        },
+        "seconds": 2.860462251
+      },
+      "export_sha256": {
+        "comparison.csv": "82ee37a1349705d7a44fa1da2b13c6dab49df5847006748ed91efb698c752304",
+        "comparison.json": "835d6718f624b541866e33c5cafb3ba4f4d609eb0eda0533ac64bfcfca76316f",
+        "hedge/unhedged/attribution.csv": "e5fb14cfc39bb8bcd4583f24f85c6332007c0693814ab31f72cc16560f14f050",
+        "hedge/unhedged/attribution.json": "6ce407ab647b65f542bb64434a9fd6edb2d894f1df613aeee26d6fd4e0e046a2",
+        "ledgers.csv": "db893ab91e12a72e6f1d6a67158242cfafc3eec2b276ed607fbf3ad1db62a336",
+        "market.csv": "57cee08a76a2bd0bece6981c1b8392033903779246942178630db50c640ca461",
+        "strategies.csv": "7fa02542be100a3527a1695485c2768b7122bb08aa4ff51f9270eaed2d5f769f",
+        "strategy/bear_put/attribution.csv": "1091e63a7cbc3f7b9e229f22166583421e45274dfbd846de1b3e125c8cc6af0c",
+        "strategy/bear_put/attribution.json": "ce58012b7b667ae712b05fab0186bac66512cfa0e718a259c138082e26cad74f",
+        "strategy/bull_call/attribution.csv": "dd72bfb638280aa29077fc4e5f46d529fa3274818ae81f341835300cad9eeaad",
+        "strategy/bull_call/attribution.json": "1dc4d0ccc0d532734a5f82e5e24d86cf06a342c7fb478596d8113cea9c8da2db",
+        "strategy/collar/attribution.csv": "bf821fc00519cefb5d1b3469f16dee4b91a2a2cfe6d001b0f020ba5bec765bbc",
+        "strategy/collar/attribution.json": "e88d016b44218440f97fe7136d3cbfe6d67c0754eeb28488732931518417373a",
+        "strategy/covered_call/attribution.csv": "1ca93c196d675e7f741efd34687465d19fd77c5c6ff7d4b2eace5e1dfa516698",
+        "strategy/covered_call/attribution.json": "6c8fe8395698136c0cdafd42086d25b07628c970c52fbf6e7c738183ac21574c",
+        "strategy/protective_put/attribution.csv": "513d9f66df699b4e626a9d3c8d94189ade8578e9c9fed99e06ad9aa6d6dd7704",
+        "strategy/protective_put/attribution.json": "832486b02e5f33c32e48ed8a0294521378e9e25f309307e88b2b950f24b709e1",
+        "wealth.csv": "92b930f3a030b3401c95e8e91b4c23d3e4df93ed62e48079dd7f45ad85337b00"
+      },
+      "paths": 100
+    },
+    {
+      "attribution": {
+        "calls": {
+          "net_wealth": 1,
+          "reconciled": 1,
+          "wealth": 1
+        },
+        "seconds": 0.000886292
+      },
+      "attribution_sha256": "3a1e9fb261258b166810cd761e5c6458d89d9c8c03bb51feea5d8ad8d7b6fcba",
+      "comparison_export": {
+        "calls": {
+          "net_wealth": 12,
+          "reconciled": 12,
+          "wealth": 12
+        },
+        "seconds": 5.706767413000001
+      },
+      "export_sha256": {
+        "comparison.csv": "f95d133454887bf23c7c5eaa5dd441afd92035e58cba843ac74414dad788eca6",
+        "comparison.json": "3d686b946d18e4c7ca777f60b3567f94eb8673611d67ac20b9f1b1aa482e51b2",
+        "hedge/unhedged/attribution.csv": "4a204628e13c1cb563e0032f9b43bb1dc414876873f302a9794c3bee0ef1aa34",
+        "hedge/unhedged/attribution.json": "0df733ee1b2209e543310121174dc1efb5e1fadf6b65fa20cc492f6712957559",
+        "ledgers.csv": "773ef83d7a8b05f7d6d40e82997ca311c67d06c1c373fe3320d184b578af83e0",
+        "market.csv": "539753917584f4e1913e7edc355d956fe9a6b41c5b8bfe280d1d7c42b4fe1fde",
+        "strategies.csv": "62a24250e6716751447194e468bdd56b6506fe606a032adec5fe9ec9914fd4bf",
+        "strategy/bear_put/attribution.csv": "4642e0f8fe5d38dec0c62e6e3759309c38d0e6e1e07f07450d0b36228dd3d403",
+        "strategy/bear_put/attribution.json": "4924941b107bf3dee11ffddaa147ee98d023ba6fe410c06fe82ae914ea7dcd85",
+        "strategy/bull_call/attribution.csv": "de084875c40365b9805ca5a1316740a3cf870bf6cc3c2db7a01ca691f6ca2adc",
+        "strategy/bull_call/attribution.json": "63a6b4b7068c52a93bf7146ed9a385a5b6d315285abcbb374880fb83e22cb84a",
+        "strategy/collar/attribution.csv": "e0770d7213b105f3be2e68157bbb415d6b5e1f2e6d610e09709a169bfd9c5c63",
+        "strategy/collar/attribution.json": "44e60aa93a1dbd10cb50f6fe1d5408becd24f54f39d92a630fde47d39df0eb92",
+        "strategy/covered_call/attribution.csv": "0c0f0a7c7f541d05f266e90b68d0fec962028af68aa93a8975ddb1ec47fb84b1",
+        "strategy/covered_call/attribution.json": "1fc7d065525106fa5cf0515a40f4d30a6c776412ee9c0948f30ea77e86889c29",
+        "strategy/protective_put/attribution.csv": "0e96f5bb6005f716e4112538fdac0fc99fd93fcf353beb6c7a609f3f71e49977",
+        "strategy/protective_put/attribution.json": "42bbfdaf9fd472c334b530e98e1952a7089cb0d437177596789a85421890a30c",
+        "wealth.csv": "e5cf9fcde38d3622cd8b177657da579be07f74900c4aeeef63e7334ef1233de8"
+      },
+      "paths": 200
+    }
+  ],
+  "numpy": "2.5.3",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.5",
+  "seed": 314,
+  "steps": 16,
+  "toolkit": "0.3.0"
+}

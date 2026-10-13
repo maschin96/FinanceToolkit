@@ -388,9 +388,15 @@ class YahooClient:
         repair: bool = False,
         offline: bool = False,
     ) -> dict[str, History]:
+        """Daily sessions in History.timezone within [start, end), online/cache.
+
+        Out-of-interval data raises symbol-specific DataError before cache
+        writes. Missing sessions are not filled or checked against a calendar.
+        """
         symbols = _symbols(tickers)
+        start_date, end_date = date.fromisoformat(start), date.fromisoformat(end)
         if (
-            date.fromisoformat(start) >= date.fromisoformat(end)
+            start_date >= end_date
             or type(repair) is not bool
             or type(offline) is not bool
         ):
@@ -435,21 +441,29 @@ class YahooClient:
                         self.provider.history, ticker, start, end, self.timeout, repair
                     ),
                 )
-                if history.ticker != ticker or history.repaired != repair:
-                    raise DataError(f"{ticker}: provider identity/repair mismatch")
-                if self.cache is not None:
-                    self.cache.mkdir(parents=True, exist_ok=True)
-                    self._path(request).write_text(
-                        _json(
-                            {
-                                "request": request,
-                                "history": asdict(history),
-                                "hash": history.data_hash,
-                            }
-                        )
-                        + "\n",
-                        encoding="utf-8",
+            if history.ticker != ticker or history.repaired != repair:
+                raise DataError(f"{ticker}: provider identity/repair mismatch")
+            zone = ZoneInfo(history.timezone)
+            for bar in history.bars:
+                session = bar.time.astimezone(zone).date()
+                if not start_date <= session < end_date:
+                    raise DataError(
+                        f"{ticker}: daily session {session} outside requested interval "
+                        f"[{start_date}, {end_date}) in {history.timezone}"
                     )
+            if not offline and self.cache is not None:
+                self.cache.mkdir(parents=True, exist_ok=True)
+                self._path(request).write_text(
+                    _json(
+                        {
+                            "request": request,
+                            "history": asdict(history),
+                            "hash": history.data_hash,
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
             result[ticker] = history
         return result
 
@@ -501,8 +515,10 @@ def main() -> None:
     parser.add_argument("--interval", type=float, default=30)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    client = YahooClient(cache=args.cache, timeout=args.timeout, retries=args.retries)
     try:
+        client = YahooClient(
+            cache=args.cache, timeout=args.timeout, retries=args.retries
+        )
         if args.action == "history":
             if not args.start or not args.end:
                 parser.error("history requires --start and --end")
@@ -547,7 +563,7 @@ def main() -> None:
             args.output.write_text(output + "\n", encoding="utf-8")
         elif args.action == "history":
             print(output)
-    except (DataError, ValueError) as error:
+    except (DataError, ValueError, OSError, ImportError) as error:
         parser.exit(1, f"{error}\n")
     except KeyboardInterrupt:
         parser.exit(130, "polling stopped\n")

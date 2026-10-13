@@ -1,8 +1,8 @@
 # FinanceToolkit
 
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
-festverzinslichen Anleihen und gemischten Portfolios. **M3 / Version 0.3.0**
-erweitert M2 um dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
+festverzinslichen Anleihen und gemischten Portfolios. **M4 / Version 0.3.1**
+stabilisiert dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
 Strategievergleiche, optionale Yahoo-Marktdaten und eigene Aktienindizes.
 Das Repository und seine Release-Artefakte sind öffentlich; keine PyPI-Veröffentlichung.
 
@@ -59,6 +59,14 @@ Beide Beispiele sind offline. [Hedge-Lab](Doc/26_M3_HEDGE_LAB.md),
 [eigene Indizes](Doc/27_M3_CUSTOM_INDICES.md). Aktien-Shorts und Cashkredite
 benötigen explizite Freigabe; keine Margin- oder Brokeranbindung.
 
+M4 vereinheitlicht Fälligkeitsereignisse und endliche Ergebnisverträge, prüft
+Yahoo-Sitzungsdaten und CLI-Eingaben und vermeidet wiederholte Exportberechnungen.
+Attributionen liegen jetzt separat unter `hedge/<name>/attribution.{json,csv}`
+und `strategy/<name>/attribution.{json,csv}`. `comparison.json` ordnet diese
+Pfade über `kind`/`name` zu; bestehende Exportleser müssen die neuen Pfade
+beachten. [M4-Verifikation](Doc/30_M4_VERIFICATION.md) und
+[Profilnachweis](Doc/29_M4_EXPORT_PROFILE.md) dokumentieren die Korrekturen.
+
 ## Geplant: M5 – Terminal-App
 
 Nach dem Stabilisierungsmilestone M4 ist eine optionale **Textual-TUI** geplant:
@@ -102,7 +110,7 @@ Portfolio-Raster müssen alle relevanten Transaktions-/Zahlungstermine enthalten
 ## Entwicklung und Verifikation
 
 ```sh
-uv sync --locked --extra plots
+uv sync --locked --extra plots --extra yahoo
 uv run --no-sync python -m pytest
 uv run --no-sync python -m ruff check .
 uv run --no-sync python -m ruff format --check .
@@ -112,14 +120,37 @@ uv build
 ```
 
 Nach `uv sync` alternativ die virtuelle Umgebung aktivieren und `python -m ...`
-verwenden. Ohne `plots` sind ausschließlich die optionalen Diagrammtests sichtbar übersprungen;
-Release-CI installiert `plots` und prüft alle Tests und Beispiele ohne Auslassungen.
-CI prüft Python 3.11–3.13, Paketbau und frische Wheel-Installation außerhalb des
-Quellbaums. [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
+verwenden. Das Basis-/Dev-Profil ohne Extras lässt sich separat prüfen:
+
+```sh
+UV_PROJECT_ENVIRONMENT=/tmp/finance-core uv sync --locked
+UV_PROJECT_ENVIRONMENT=/tmp/finance-core uv run --no-sync python -m pytest
+```
+
+Ohne `plots` werden genau die sechs optionalen Diagrammtests sichtbar übersprungen;
+alle numerischen Tests, Exporte und Offline-CLIs laufen weiter. Kernimporte und
+numerische Offline-CLIs benötigen weder Matplotlib noch pandas/yfinance.
+Ein zusätzlicher CI-Job prüft dieses Basisprofil auf Python 3.13, die tatsächliche
+Abwesenheit der Extras und die erlaubten Übersprünge. Die vollständige CI-Matrix
+installiert `plots`/`yahoo` auf Python 3.11–3.13 und prüft alle Tests ohne
+Auslassungen, Beispiele mit Diagrammen, Paketbau und frische Wheel-Installation
+außerhalb des Quellbaums. [Installationsprofile](Doc/10_DEPENDENCIES.md).
+[M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
 [M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) und
-[M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) enthalten Referenzen und
+[M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) sowie
+[M4-Verifikationsbericht](Doc/30_M4_VERIFICATION.md) enthalten Referenzen und
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
 [Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
+
+CLI-Fehlervertrag (#64) für `examples`, `risk_lab`, `hedge_lab`, `index_lab`
+und `yahoo`: Erfolg = Exitcode 0; Parser-/Syntaxfehler (z.B. fehlende Pflicht-
+argumente) = 2 mit Usage; fachlich ungültige Eingaben, Provider-/Dateifehler oder
+fehlende optionale Importe = 1 mit knapper Fehlermeldung ohne Traceback.
+Yahoo-Polling-Abbruch bleibt 130. Timeout-/Retryparameter und Index-JSON-Typen
+werden vor Providerzugriff geprüft. Index-Symbole müssen eine nichtleere
+Liste nichtleerer Strings sein, ohne stille Typumwandlung. `TypeError`/
+`KeyError` aus interner Programmierlogik werden nicht pauschal verschluckt.
+Bibliotheks-APIs behalten ihren Exception-Vertrag; gültige Exporte bleiben gleich.
 
 ## Modellgrenzen
 

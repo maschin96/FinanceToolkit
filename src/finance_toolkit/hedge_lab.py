@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from finance_toolkit import __version__
+from finance_toolkit._numerics import finite_result, numeric_errors
 from finance_toolkit._validation import positive_integer
 from finance_toolkit.analytics import drawdown, tail_risk
 from finance_toolkit.attribution import attribute_book, export_attribution
@@ -44,12 +45,13 @@ class Comparison:
     strategy_metrics: list[dict[str, str | float | None]]
 
 
+@numeric_errors("comparison metrics")
 def _metrics(
     name: str, book: BookPaths, hedge: HedgePaths | None = None
 ) -> dict[str, str | float | None]:
     pnl = book.wealth[:, -1] - book.initial_cash
     risk = tail_risk(-pnl)
-    return {
+    result: dict[str, str | float | None] = {
         "name": name,
         "mean_pnl": float(pnl.mean()),
         "rms_replication_pnl": float(np.sqrt(np.mean(pnl**2))),
@@ -70,6 +72,11 @@ def _metrics(
         if hedge
         else None,
     }
+    finite_result(
+        [value for value in result.values() if isinstance(value, float)],
+        "comparison metrics",
+    )
+    return result
 
 
 def compare_hedges(
@@ -205,7 +212,12 @@ def compare_hedges(
 def export_comparison(
     result: Comparison, directory: Path, *, plot: bool = False
 ) -> None:
-    """CSV/JSON including full config, actual ledgers and attribution; optional PNG."""
+    """CSV/JSON ledgers and attribution; optional PNG.
+
+    Attribution paths use kind/name namespaces (hedge or strategy), listed as
+    relative paths in comparison.json. Re-exporting replaces the same files.
+    Legacy name-only attribution directories are neither written nor removed.
+    """
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "comparison.json").write_text(
         json.dumps(
@@ -213,6 +225,19 @@ def export_comparison(
                 "config": result.config,
                 "metrics": result.metrics,
                 "strategies": result.strategy_metrics,
+                "attributions": [
+                    {
+                        "kind": kind,
+                        "name": name,
+                        "json": f"{kind}/{name}/attribution.json",
+                        "csv": f"{kind}/{name}/attribution.csv",
+                    }
+                    for kind, books in [
+                        ("hedge", result.books),
+                        ("strategy", result.strategies),
+                    ]
+                    for name in books
+                ],
             },
             indent=2,
             allow_nan=False,
@@ -250,7 +275,8 @@ def export_comparison(
         for kind, books in [("hedge", result.books), ("strategy", result.strategies)]:
             for name, book in books.items():
                 hedge = result.hedges.get(name) if kind == "hedge" else None
-                for p in range(book.wealth.shape[0]):
+                wealth = book.wealth
+                for p in range(wealth.shape[0]):
                     for t, time in enumerate(book.times):
                         writer.writerow(
                             [
@@ -258,7 +284,7 @@ def export_comparison(
                                 name,
                                 p,
                                 time,
-                                book.wealth[p, t],
+                                wealth[p, t],
                                 book.cash[p, t],
                                 book.financing[p, t],
                                 book.fees[p, t].sum(),
@@ -275,7 +301,7 @@ def export_comparison(
                                 else None,
                             ]
                         )
-                export_attribution(attribute_book(book), directory / name)
+                export_attribution(attribute_book(book), directory / kind / name)
     fine_book = next(iter(result.strategies.values()))
     with (directory / "market.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
@@ -300,7 +326,7 @@ def export_comparison(
         writer.writerow(["kind", "name", "path", "time", "instrument", *fields])
         for kind, books in [("hedge", result.books), ("strategy", result.strategies)]:
             for name, book in books.items():
-                for p in range(book.wealth.shape[0]):
+                for p in range(book.quantities.shape[0]):
                     for t, time in enumerate(book.times):
                         for j in range(len(book.instruments)):
                             writer.writerow(
@@ -394,7 +420,7 @@ def main() -> None:
             },
         )
         export_comparison(result, args.output, plot=args.plot)
-    except (ValueError, ImportError) as error:
+    except (ValueError, OSError, ImportError) as error:
         parser.exit(1, f"{error}\n")
 
 

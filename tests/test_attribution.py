@@ -1,3 +1,4 @@
+import csv
 import json
 
 import numpy as np
@@ -11,6 +12,164 @@ from finance_toolkit.attribution import (
 from finance_toolkit.options_book import Order, simulate_book
 from finance_toolkit.portfolio import EuropeanOption, Stock
 from finance_toolkit.simulation import GBMPaths
+
+
+def test_relative_pnl_nonpositive_bases_and_later_array_edits(tmp_path):
+    market = GBMPaths(
+        np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        np.array([100.0, 90.0, 100.0, 120.0, 110.0])[None, :, None],
+    )
+    book = simulate_book(
+        market,
+        (Stock(),),
+        initial_cash=0,
+        initial_orders=(Order(0, 1),),
+        allow_borrowing=True,
+    )
+    original = attribute_book(book)
+    # Equity = spot - 100; bases 0, -10, 0, 20, interval P&L -10,10,20,-10.
+    assert original.relative_pnl == [[None, None, None, -0.5]]
+    np.testing.assert_array_equal(original.reconciled, [[-10, 10, 20, -10]])
+    export_attribution(original, tmp_path)
+    assert (
+        json.loads((tmp_path / "attribution.json").read_text())["relative_pnl"]
+        == original.relative_pnl
+    )
+    with (tmp_path / "attribution.csv").open(newline="") as stream:
+        assert [row["relative_pnl"] for row in csv.DictReader(stream)] == [
+            "",
+            "",
+            "",
+            "-0.5",
+        ]
+    # Results are writable: a later processing call must use current arrays.
+    book.cash[:] += 100
+    updated = attribute_book(book)
+    np.testing.assert_allclose(
+        updated.relative_pnl, [[-0.1, 1 / 9, 0.2, -1 / 12]], rtol=0, atol=1e-14
+    )
+    assert original.relative_pnl == [[None, None, None, -0.5]]
+
+
+@pytest.mark.parametrize("offset", [-5e-11, 0.0, 5e-11])
+@pytest.mark.parametrize("kind", ["call", "put"])
+@pytest.mark.parametrize("quantity,multiplier", [(2, 1), (-3, 10)])
+def test_tolerant_expiry_reconciles_and_exports_once(
+    tmp_path, offset, kind, quantity, multiplier
+):
+    market = GBMPaths(
+        np.array([0.0, 0.5, 1.0 + offset, 1.5]),
+        np.array([[100, 110, 120, 130], [100, 90, 80, 70]])[:, :, None],
+    )
+    option = EuropeanOption(0, 100, 1, 0.2, kind=kind, multiplier=multiplier)
+    book = simulate_book(
+        market,
+        (option,),
+        initial_cash=1000,
+        initial_orders=(Order(0, quantity),),
+        allow_borrowing=True,
+    )
+    result = attribute_book(book)
+    # Intrinsic values at expiry are 20/0 (call) or 0/20 (put), in currency
+    # per share. The signed contract scale applies once, including zero payoffs.
+    payoff = np.array([20, 0] if kind == "call" else [0, 20])
+    payment = quantity * multiplier * payoff
+    np.testing.assert_array_equal(book.settlements[:, 2, 0], payment)
+    np.testing.assert_array_equal(book.settlements[:, 3, 0], 0)
+    np.testing.assert_array_equal(book.quantities[:, 2:, 0], 0)
+    np.testing.assert_allclose(
+        book.wealth[:, -1],
+        1000 + book.trade_cashflows[:, 0, 0] + payment,
+        rtol=1e-12,
+        atol=1e-10,
+    )
+    np.testing.assert_array_equal(result.events[:, 1, 0], True)
+    np.testing.assert_array_equal(result.events[:, 2, 0], False)
+    for name in ("delta", "gamma", "vega", "theta", "rho"):
+        np.testing.assert_array_equal(getattr(result, name)[:, 1:, 0], 0)
+    # Roundoff in currency sums around 1000: 1e-10 absolute / 1e-12 relative.
+    np.testing.assert_allclose(
+        result.reconciled, np.diff(book.wealth, axis=1), rtol=1e-12, atol=1e-10
+    )
+    np.testing.assert_allclose(
+        result.residual[:, 1, 0], result.market[:, 1, 0], rtol=0, atol=1e-10
+    )
+    export_attribution(result, tmp_path)
+    data = json.loads((tmp_path / "attribution.json").read_text())
+    assert data["events"] == result.events.tolist()
+    np.testing.assert_array_equal(data["settlements"], result.settlements)
+    with (tmp_path / "attribution.csv").open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 6
+    for row in rows:
+        if float(row["time"]) == market.times[2]:
+            assert row["events"] == "True"
+            assert float(row["theta"]) == 0
+
+
+@pytest.mark.parametrize("offset", [-5e-11, 0.0, 5e-11])
+def test_standalone_move_normalizes_expiry_endpoints(offset):
+    result = explain_option_move(
+        EuropeanOption(0, 100, 1, 0.2, multiplier=10),
+        quantity=-2,
+        spot_start=110,
+        spot_end=120,
+        time_start=1 + offset,
+        time_end=1 + offset,
+        volatility_start=0.2,
+        volatility_end=0.2,
+        rate_start=0.03,
+        rate_end=0.03,
+    )
+    assert result["event"]
+    assert result["actual"] == -200
+    assert result["residual"] == -200
+    for name in ("delta", "gamma", "vega", "theta", "rho"):
+        assert result[name] == 0
+
+
+@pytest.mark.parametrize(
+    "start,end",
+    [(0, 1 + 2e-10), (1 + 2e-10, 1 + 3e-10), (1 + 5e-11, 1), (-5e-11, 0)],
+)
+def test_standalone_move_rejects_invalid_times(start, end):
+    with pytest.raises(ValueError, match="times must be ordered within option life"):
+        explain_option_move(
+            EuropeanOption(0, 100, 1, 0.2),
+            quantity=1,
+            spot_start=100,
+            spot_end=110,
+            time_start=start,
+            time_end=end,
+            volatility_start=0.2,
+            volatility_end=0.2,
+            rate_start=0.03,
+            rate_end=0.03,
+        )
+
+
+def test_outside_expiry_tolerance_keeps_smooth_move_and_grid_contract():
+    option = EuropeanOption(0, 100, 1, 0.2, multiplier=1)
+    result = explain_option_move(
+        option,
+        quantity=1,
+        spot_start=100,
+        spot_end=100,
+        time_start=0.5,
+        time_end=1 - 2e-10,
+        volatility_start=0.2,
+        volatility_end=0.2,
+        rate_start=0,
+        rate_end=0,
+    )
+    assert not result["event"]
+    assert result["theta"] != 0
+    with pytest.raises(ValueError, match="expiry must match exactly one grid point"):
+        simulate_book(
+            GBMPaths(np.array([0.0, 1 + 2e-10]), np.full((1, 2, 1), 100.0)),
+            (option,),
+            initial_cash=1000,
+        )
 
 
 def test_stock_cash_trades_fees_exact_reconciliation(tmp_path):
