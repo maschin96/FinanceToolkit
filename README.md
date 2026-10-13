@@ -92,7 +92,7 @@ Portfolio-Raster müssen alle relevanten Transaktions-/Zahlungstermine enthalten
 ## Entwicklung und Verifikation
 
 ```sh
-uv sync --locked --extra plots
+uv sync --locked --extra plots --extra yahoo
 uv run --no-sync python -m pytest
 uv run --no-sync python -m ruff check .
 uv run --no-sync python -m ruff format --check .
@@ -102,10 +102,22 @@ uv build
 ```
 
 Nach `uv sync` alternativ die virtuelle Umgebung aktivieren und `python -m ...`
-verwenden. Ohne `plots` sind ausschließlich die optionalen Diagrammtests sichtbar übersprungen;
-Release-CI installiert `plots` und prüft alle Tests und Beispiele ohne Auslassungen.
-CI prüft Python 3.11–3.13, Paketbau und frische Wheel-Installation außerhalb des
-Quellbaums. [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
+verwenden. Das Basis-/Dev-Profil ohne Extras lässt sich separat prüfen:
+
+```sh
+UV_PROJECT_ENVIRONMENT=/tmp/finance-core uv sync --locked
+UV_PROJECT_ENVIRONMENT=/tmp/finance-core uv run --no-sync python -m pytest
+```
+
+Ohne `plots` werden genau die sechs optionalen Diagrammtests sichtbar übersprungen;
+alle numerischen Tests, Exporte und Offline-CLIs laufen weiter. Kernimporte und
+numerische Offline-CLIs benötigen weder Matplotlib noch pandas/yfinance.
+Ein zusätzlicher CI-Job prüft dieses Basisprofil auf Python 3.13, die tatsächliche
+Abwesenheit der Extras und die erlaubten Übersprünge. Die vollständige CI-Matrix
+installiert `plots`/`yahoo` auf Python 3.11–3.13 und prüft alle Tests ohne
+Auslassungen, Beispiele mit Diagrammen, Paketbau und frische Wheel-Installation
+außerhalb des Quellbaums. [Installationsprofile](Doc/10_DEPENDENCIES.md).
+[M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
 [M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) und
 [M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) enthalten Referenzen und
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.

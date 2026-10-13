@@ -35,7 +35,13 @@ jobs:
       - name: Install locked environment
         run: uv sync --locked --extra plots --extra yahoo --python '${{ matrix.python-version }}'
       - name: Tests
-        run: uv run --no-sync python -m pytest
+        run: |
+          uv run --no-sync python -m pytest --junitxml=/tmp/finance-full-tests.xml
+          uv run --no-sync python - <<'PY'
+          from xml.etree import ElementTree
+          report = ElementTree.parse('/tmp/finance-full-tests.xml')
+          assert not report.findall('.//skipped'), 'Full profile must run all tests'
+          PY
       - name: Offline examples and diagrams
         run: |
           uv run --no-sync python -m finance_toolkit.examples --paths 100 --output /tmp/finance-demo --plot
@@ -66,3 +72,47 @@ jobs:
           /tmp/finance-wheel/bin/python -m finance_toolkit.risk_lab --paths 20 --output /tmp/wheel-m2-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.hedge_lab --paths 20 --steps 16 --output /tmp/wheel-m3-hedge --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.index_lab --config "$GITHUB_WORKSPACE/examples/m3_index_demo.json" --demo --output /tmp/wheel-m3-index --plot
+
+  core:
+    name: Core profile (Python 3.13, no extras)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: false
+      - name: Install locked base and dev dependencies without extras
+        run: uv sync --locked --python '3.13'
+      - name: Verify optional dependencies are absent
+        run: |
+          uv run --no-sync python - <<'PY'
+          from importlib.util import find_spec
+          for module in ('matplotlib', 'pandas', 'yfinance'):
+              assert find_spec(module) is None, f'Unexpected optional dependency: {module}'
+          PY
+      - name: Numerical suite and guarded offline CLIs
+        run: uv run --no-sync python -m pytest --junitxml=/tmp/finance-core-tests.xml
+      - name: Verify only the six optional diagram tests were skipped
+        run: |
+          uv run --no-sync python - <<'PY'
+          from xml.etree import ElementTree
+          report = ElementTree.parse('/tmp/finance-core-tests.xml')
+          skipped = [case.get('name') for case in report.findall('.//testcase')
+                     if case.find('skipped') is not None]
+          expected = {
+              'test_optional_plot_adapter_outputs_png',
+              'test_optional_plot_uses_same_results',
+              'test_optional_index_plot',
+              'test_optional_charts',
+              'test_heatmap_contains_numerical_grid',
+              'test_heatmap_does_not_change_global_backend',
+          }
+          assert len(skipped) == len(expected) and set(skipped) == expected, skipped
+          PY
