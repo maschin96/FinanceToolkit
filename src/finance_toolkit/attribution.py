@@ -212,10 +212,11 @@ def attribute_book(book: BookPaths) -> Attribution:
                         array[p, t, j] = float(components[name])
                     events[p, t, j] = bool(components["event"])
     residual = market - delta - gamma - vega - theta - rho
-    pnl = np.diff(book.wealth, axis=1)
+    wealth = book.wealth
+    pnl = np.diff(wealth, axis=1)
     relative = [
         [
-            float(pnl[p, t] / book.wealth[p, t]) if book.wealth[p, t] > 0 else None
+            float(pnl[p, t] / wealth[p, t]) if wealth[p, t] > 0 else None
             for t in range(shape[1])
         ]
         for p in range(shape[0])
@@ -247,6 +248,7 @@ def attribute_book(book: BookPaths) -> Attribution:
 def export_attribution(result: Attribution, directory: Path) -> None:
     """Write inspectable position and portfolio components; null relative bases."""
     directory.mkdir(parents=True, exist_ok=True)
+    reconciled = result.reconciled
     names = (
         "market",
         "execution",
@@ -265,7 +267,7 @@ def export_attribution(result: Attribution, directory: Path) -> None:
     data.update(
         times=result.times.tolist(),
         financing=result.financing.tolist(),
-        pnl=result.reconciled.tolist(),
+        pnl=reconciled.tolist(),
         relative_pnl=result.relative_pnl,
         units={
             "values": "currency",
@@ -305,7 +307,7 @@ def export_attribution(result: Attribution, directory: Path) -> None:
                             j,
                             *[getattr(result, name)[p, t, j] for name in names],
                             result.financing[p, t],
-                            result.reconciled[p, t],
+                            reconciled[p, t],
                             result.relative_pnl[p][t],
                         ]
                     )

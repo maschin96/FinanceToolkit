@@ -275,7 +275,8 @@ def export_comparison(
         for kind, books in [("hedge", result.books), ("strategy", result.strategies)]:
             for name, book in books.items():
                 hedge = result.hedges.get(name) if kind == "hedge" else None
-                for p in range(book.wealth.shape[0]):
+                wealth = book.wealth
+                for p in range(wealth.shape[0]):
                     for t, time in enumerate(book.times):
                         writer.writerow(
                             [
@@ -283,7 +284,7 @@ def export_comparison(
                                 name,
                                 p,
                                 time,
-                                book.wealth[p, t],
+                                wealth[p, t],
                                 book.cash[p, t],
                                 book.financing[p, t],
                                 book.fees[p, t].sum(),
@@ -325,7 +326,7 @@ def export_comparison(
         writer.writerow(["kind", "name", "path", "time", "instrument", *fields])
         for kind, books in [("hedge", result.books), ("strategy", result.strategies)]:
             for name, book in books.items():
-                for p in range(book.wealth.shape[0]):
+                for p in range(book.quantities.shape[0]):
                     for t, time in enumerate(book.times):
                         for j in range(len(book.instruments)):
                             writer.writerow(

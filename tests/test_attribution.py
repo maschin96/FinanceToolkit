@@ -14,6 +14,43 @@ from finance_toolkit.portfolio import EuropeanOption, Stock
 from finance_toolkit.simulation import GBMPaths
 
 
+def test_relative_pnl_nonpositive_bases_and_later_array_edits(tmp_path):
+    market = GBMPaths(
+        np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        np.array([100.0, 90.0, 100.0, 120.0, 110.0])[None, :, None],
+    )
+    book = simulate_book(
+        market,
+        (Stock(),),
+        initial_cash=0,
+        initial_orders=(Order(0, 1),),
+        allow_borrowing=True,
+    )
+    original = attribute_book(book)
+    # Equity = spot - 100; bases 0, -10, 0, 20, interval P&L -10,10,20,-10.
+    assert original.relative_pnl == [[None, None, None, -0.5]]
+    np.testing.assert_array_equal(original.reconciled, [[-10, 10, 20, -10]])
+    export_attribution(original, tmp_path)
+    assert (
+        json.loads((tmp_path / "attribution.json").read_text())["relative_pnl"]
+        == original.relative_pnl
+    )
+    with (tmp_path / "attribution.csv").open(newline="") as stream:
+        assert [row["relative_pnl"] for row in csv.DictReader(stream)] == [
+            "",
+            "",
+            "",
+            "-0.5",
+        ]
+    # Results are writable: a later processing call must use current arrays.
+    book.cash[:] += 100
+    updated = attribute_book(book)
+    np.testing.assert_allclose(
+        updated.relative_pnl, [[-0.1, 1 / 9, 0.2, -1 / 12]], rtol=0, atol=1e-14
+    )
+    assert original.relative_pnl == [[None, None, None, -0.5]]
+
+
 @pytest.mark.parametrize("offset", [-5e-11, 0.0, 5e-11])
 @pytest.mark.parametrize("kind", ["call", "put"])
 @pytest.mark.parametrize("quantity,multiplier", [(2, 1), (-3, 10)])

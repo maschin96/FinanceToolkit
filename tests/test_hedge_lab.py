@@ -11,6 +11,29 @@ from finance_toolkit.hedge_lab import ComparisonCase, compare_hedges, export_com
 from finance_toolkit.simulation import GBMPaths
 
 
+def test_reexport_reads_current_book_arrays(tmp_path):
+    market = GBMPaths(np.array([0.0, 0.5, 1.0]), np.full((1, 3, 1), 100.0))
+    result = compare_hedges(market, (ComparisonCase("none"),), initial_cash=1000)
+    export_comparison(result, tmp_path)
+    book = result.books["none"]
+    book.cash[:] += 100
+    export_comparison(result, tmp_path)
+    with (tmp_path / "wealth.csv").open(newline="") as stream:
+        row = next(
+            row
+            for row in csv.DictReader(stream)
+            if row["kind"] == "hedge" and row["time"] == "0.0"
+        )
+    assert float(row["wealth"]) == 1100
+    data = json.loads((tmp_path / "hedge" / "none" / "attribution.json").read_text())
+    # Hand balance using current cash plus position values, currency around 1000.
+    start = book.cash[0, 0] + book.values[0, 0].sum()
+    end = book.cash[0, 1] + book.values[0, 1].sum()
+    assert data["relative_pnl"][0][0] == pytest.approx(
+        (end - start) / start, rel=1e-12, abs=1e-14
+    )
+
+
 @pytest.mark.parametrize(
     "name", ["protective_put", "covered_call", "collar", "bull_call", "bear_put"]
 )
