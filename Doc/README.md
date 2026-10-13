@@ -27,6 +27,7 @@
 - [M3 – Eigene Aktienindizes](27_M3_CUSTOM_INDICES.md)
 - [M3 – Gesamtverifikation](28_M3_VERIFICATION.md)
 - [M4 – Exportprofil und lokale Ergebniswiederverwendung](29_M4_EXPORT_PROFILE.md)
+- [M4 – Gesamtverifikation und Wartungsrelease](30_M4_VERIFICATION.md)
 
-M1–M3 sind numerisch verifiziert; keine empirische Marktvalidierung.
-Release-Nachweise: GitHub-Issues #9, #28 und #47.
+M1–M4 sind numerisch verifiziert; keine empirische Marktvalidierung.
+Release-Nachweise: GitHub-Issues #9, #28, #47 und #66.

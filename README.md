@@ -1,8 +1,8 @@
 # FinanceToolkit
 
 Python Toolbox für Simulation und Analyse von Aktien, europäischen Optionen,
-festverzinslichen Anleihen und gemischten Portfolios. **M3 / Version 0.3.0**
-erweitert M2 um dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
+festverzinslichen Anleihen und gemischten Portfolios. **M4 / Version 0.3.1**
+stabilisiert dynamische Optionsbücher, Delta-Hedging, P&L-Attribution,
 Strategievergleiche, optionale Yahoo-Marktdaten und eigene Aktienindizes.
 Das Repository und seine Release-Artefakte sind öffentlich; keine PyPI-Veröffentlichung.
 
@@ -58,6 +58,14 @@ Beide Beispiele sind offline. [Hedge-Lab](Doc/26_M3_HEDGE_LAB.md),
 [Yahoo-Daten und Nutzungsgrenzen](Doc/25_M3_YAHOO.md),
 [eigene Indizes](Doc/27_M3_CUSTOM_INDICES.md). Aktien-Shorts und Cashkredite
 benötigen explizite Freigabe; keine Margin- oder Brokeranbindung.
+
+M4 vereinheitlicht Fälligkeitsereignisse und endliche Ergebnisverträge, prüft
+Yahoo-Sitzungsdaten und CLI-Eingaben und vermeidet wiederholte Exportberechnungen.
+Attributionen liegen jetzt separat unter `hedge/<name>/attribution.{json,csv}`
+und `strategy/<name>/attribution.{json,csv}`. `comparison.json` ordnet diese
+Pfade über `kind`/`name` zu; bestehende Exportleser müssen die neuen Pfade
+beachten. [M4-Verifikation](Doc/30_M4_VERIFICATION.md) und
+[Profilnachweis](Doc/29_M4_EXPORT_PROFILE.md) dokumentieren die Korrekturen.
 
 ## Geplant: M5 – Terminal-App
 
@@ -129,7 +137,8 @@ Auslassungen, Beispiele mit Diagrammen, Paketbau und frische Wheel-Installation
 außerhalb des Quellbaums. [Installationsprofile](Doc/10_DEPENDENCIES.md).
 [M1-Verifikationsbericht](Doc/16_M1_VERIFICATION.md),
 [M2-Verifikationsbericht](Doc/20_M2_VERIFICATION.md) und
-[M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) enthalten Referenzen und
+[M3-Verifikationsbericht](Doc/28_M3_VERIFICATION.md) sowie
+[M4-Verifikationsbericht](Doc/30_M4_VERIFICATION.md) enthalten Referenzen und
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
 [Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
 

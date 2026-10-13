@@ -40,6 +40,25 @@ erst danach v0.3.0 taggen und Wheel/Quelldistribution im öffentlichen Release a
 #47 und M3 erst nach vollständigem Abschluss schließen. M2-Nachweise verbleiben
 in #28. Kein unabhängiger Reviewer verfügbar; eigenen Review transparent nennen.
 
+## M4 / v0.3.1
+
+Pflichtissues #58–#65 sind über PRs #67–#72, #83 und #84 nach
+`codex/milestone-m4` integriert. Abschlussarbeitspaket #66 aktualisiert
+Version/Lockfile, Dokumentation und [Gesamtverifikation](30_M4_VERIFICATION.md).
+Aktuelles main vor Freigabe im Milestone übernehmen und den kombinierten
+Stand erneut prüfen; M5-Planungsdokumentation erhalten. Release-PR ausdrücklich
+nach main, erst bei vollständig geprüftem Pflichtumfang. CI und vorhandene
+Review-Anmerkungen am aktuellen PR-Stand prüfen; fehlendes unabhängiges Review
+transparent nennen.
+
+Nach Merge CI am tatsächlichen main-Zielcommit für Python 3.11–3.13 und
+das Basisprofil ohne Extras prüfen. Erst danach diesen Commit als v0.3.1
+taggen, Wheel/Quelldistribution daraus bauen und im öffentlichen GitHub-Release
+veröffentlichen. Frische Wheelinstallation außerhalb des Quellbaums und alle
+vier Offline-CLIs mit Diagrammen gehören zur Abnahme. #66 und M4 erst nach
+Verifikation von Tag, Release und Paketartefakten schließen; Nachweise dort
+verlinken. Keine PyPI-Veröffentlichung oder neue Open-Source-Lizenz.
+
 ## Geplant: M5 / v0.4.0
 
 [M5-TUI-Plan](29_M5_TUI_ROADMAP.md), Pflichtissues #74–#80,
