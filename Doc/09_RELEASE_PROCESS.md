@@ -39,3 +39,20 @@ main. Nach Merge tatsächliche main-Zielcommit-CI für Python 3.11–3.13 prüfe
 erst danach v0.3.0 taggen und Wheel/Quelldistribution im öffentlichen Release ablegen.
 #47 und M3 erst nach vollständigem Abschluss schließen. M2-Nachweise verbleiben
 in #28. Kein unabhängiger Reviewer verfügbar; eigenen Review transparent nennen.
+
+## Geplant: M5 / v0.4.0
+
+[M5-TUI-Plan](29_M5_TUI_ROADMAP.md), Pflichtissues #74–#80,
+Releaseissue #81. Umsetzung erst nach vollständigem M4/v0.3.1-Abschluss (#66)
+und stabilem main. `codex/milestone-m5` erst bei tatsächlichem Arbeitsbeginn
+anlegen; Issue-PRs dorthin. Die Planungsdokumentation (#73) ist Repository-Pflege
+mit PR-Ziel main und führt keine TUI-Funktionalität ein.
+
+Vor Release alle Pflichtpakete, Headless-/Referenztests, Installationsprofile,
+Python-3.11–3.13-CI, Wheel-Smokes, manuelle Terminal-Smokes und Dokumentation
+abschließen; main übernehmen und resultierenden Stand erneut prüfen.
+CI und Review-Anmerkungen am aktuellen PR-Stand klären. Erst dann Release-PR
+nach main; nach Merge CI am tatsächlichen main-Zielcommit prüfen, danach
+v0.4.0 taggen und öffentliche Wheel-/Quelldistributionsartefakte veröffentlichen.
+#81/M5 erst nach vollständigem Veröffentlichungsabschluss schließen.
+Keine PyPI-Veröffentlichung und kein Releaseauftrag durch die Planung.
