@@ -138,3 +138,15 @@ Dokumentation anzupassen. GitHub-Tags und Paketartefakte werden öffentlich
 veröffentlicht; keine Veröffentlichung auf PyPI. Öffentliche Sichtbarkeit
 vergibt keine Open-Source-Lizenz und keine Weiterverteilungsrechte an Yahoo-
 Marktdaten. Private Datensätze, Caches und Zugangsdaten bleiben ausgeschlossen.
+
+## ADR-012 – Einheitliche Fälligkeitszuordnung in der Attribution (2026-10-13, #58)
+
+`explain_option_move` verwendet dieselbe absolute Zuordnungstoleranz von
+1e-10 Jahren wie das Optionsbuch. Anfang und Ende innerhalb dieser Toleranz
+werden für Preis und Ereignisflag auf die Vertragsfälligkeit gesetzt. Negative
+oder umgekehrte Originalzeiten bleiben ungültig; echte Zeiten nach Fälligkeit
+werden abgelehnt. Das Export-Raster bleibt unverändert. Ein akzeptierter
+Barausgleich erhält unabhängig vom Payoff ein Ereignisflag und null
+Taylor-Komponenten; die tatsächliche Bewegung bleibt im Ereignisrest.
+Keine Aufweitung der Toleranz, Änderung der Finanzierungsintervalle oder
+zusätzliche Auszahlung.

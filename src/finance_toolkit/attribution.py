@@ -9,6 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from finance_toolkit._validation import finite_float
+from finance_toolkit.instruments.bonds import TIME_TOLERANCE
 from finance_toolkit.instruments.options import black_scholes, option_greeks
 from finance_toolkit.options_book import BookPaths
 from finance_toolkit.portfolio import EuropeanOption, Stock
@@ -32,12 +33,20 @@ def explain_option_move(
     Local Taylor: delta*dS + gamma*dS²/2 + vega*dSigma + theta*dt + rho*dr.
     Decimal annual sigma/r changes; elapsed time years. No cross/higher Greeks.
     At expiry/non-smooth beginning, no Taylor is claimed: components zero and
-    full actual movement is explicitly an event residual. Beyond expiry reject.
+    full actual movement is explicitly an event residual. Endpoints within the
+    book's 1e-10 year matching tolerance are treated as exact expiry. Negative,
+    reversed or genuinely post-expiry times are rejected before pricing.
     """
     quantity = finite_float(quantity, "quantity")
     time_start = finite_float(time_start, "time_start")
     time_end = finite_float(time_end, "time_end")
-    if not 0 <= time_start <= time_end <= option.maturity:
+    if not 0 <= time_start <= time_end:
+        raise ValueError("times must be ordered within option life")
+    if abs(time_start - option.maturity) <= TIME_TOLERANCE:
+        time_start = option.maturity
+    if abs(time_end - option.maturity) <= TIME_TOLERANCE:
+        time_end = option.maturity
+    if time_end > option.maturity:
         raise ValueError("times must be ordered within option life")
     start = float(
         black_scholes(
