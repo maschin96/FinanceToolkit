@@ -123,6 +123,16 @@ außerhalb des Quellbaums. [Installationsprofile](Doc/10_DEPENDENCIES.md).
 Modellgrenzen. Updates: `uv lock --upgrade`, vollständige Matrix erneut prüfen.
 [Abhängigkeiten und Lizenzen](Doc/10_DEPENDENCIES.md).
 
+CLI-Fehlervertrag (#64) für `examples`, `risk_lab`, `hedge_lab`, `index_lab`
+und `yahoo`: Erfolg = Exitcode 0; Parser-/Syntaxfehler (z.B. fehlende Pflicht-
+argumente) = 2 mit Usage; fachlich ungültige Eingaben, Provider-/Dateifehler oder
+fehlende optionale Importe = 1 mit knapper Fehlermeldung ohne Traceback.
+Yahoo-Polling-Abbruch bleibt 130. Timeout-/Retryparameter und Index-JSON-Typen
+werden vor Providerzugriff geprüft. Index-Symbole müssen eine nichtleere
+Liste nichtleerer Strings sein, ohne stille Typumwandlung. `TypeError`/
+`KeyError` aus interner Programmierlogik werden nicht pauschal verschluckt.
+Bibliotheks-APIs behalten ihren Exception-Vertrag; gültige Exporte bleiben gleich.
+
 ## Modellgrenzen
 
 GBM mit konstanter Drift/Volatilität; europäische Barausgleichsoptionen;

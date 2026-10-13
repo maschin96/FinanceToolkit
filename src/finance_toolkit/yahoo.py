@@ -515,8 +515,10 @@ def main() -> None:
     parser.add_argument("--interval", type=float, default=30)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    client = YahooClient(cache=args.cache, timeout=args.timeout, retries=args.retries)
     try:
+        client = YahooClient(
+            cache=args.cache, timeout=args.timeout, retries=args.retries
+        )
         if args.action == "history":
             if not args.start or not args.end:
                 parser.error("history requires --start and --end")
@@ -561,7 +563,7 @@ def main() -> None:
             args.output.write_text(output + "\n", encoding="utf-8")
         elif args.action == "history":
             print(output)
-    except (DataError, ValueError) as error:
+    except (DataError, ValueError, OSError, ImportError) as error:
         parser.exit(1, f"{error}\n")
     except KeyboardInterrupt:
         parser.exit(130, "polling stopped\n")

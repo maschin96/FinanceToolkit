@@ -419,7 +419,7 @@ def main() -> None:
             },
         )
         export_comparison(result, args.output, plot=args.plot)
-    except (ValueError, ImportError) as error:
+    except (ValueError, OSError, ImportError) as error:
         parser.exit(1, f"{error}\n")
 
 
