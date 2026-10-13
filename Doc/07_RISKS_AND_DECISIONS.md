@@ -168,3 +168,15 @@ Ergebnisse behalten ihre bisherige Rundung. Reine Skalierung wäre unzureichend:
 kleine Reste können beim Teilen durch große Bruttowerte verschwinden. Der
 Fallback ist eine Korrektheitsmaßnahme für Extremfälle; Performancearbeit
 und wiederholte Vermögensberechnung bleiben gesondert in #65.
+
+## ADR-014 – BSM-Zweige nur für relevante Elemente auswerten (2026-10-13, #61)
+
+Broadcasting und Eingabevalidierung gelten für alle Elemente. Die Bewertung
+trennt Verfall, Null-Spot, Null-Volatilität und den positiven analytischen
+Bereich durch Boolesche Auswahl, bevor deren Zwischenwerte berechnet werden.
+`np.where` allein würde beide Zweige auswerten. Endliche, aber extreme r/q/sigma
+dürfen einen davon unabhängigen Verfallspayoff oder Null-Spot-Call nicht
+verhindern. Der Null-Spot-Put benötigt nur den Strike-Discount; Null-Volatilität
+nur die beiden diskontierten Legs. Tatsächlich nicht darstellbare benötigte
+Zwischen-/Endwerte bleiben Fehler. Keine Änderung der BSM-Formel, Greeks-
+Domäne, Toleranzen oder Preis-/Dividendenkonventionen.
