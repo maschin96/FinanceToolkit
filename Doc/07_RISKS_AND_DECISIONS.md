@@ -180,3 +180,13 @@ verhindern. Der Null-Spot-Put benötigt nur den Strike-Discount; Null-Volatilit�
 nur die beiden diskontierten Legs. Tatsächlich nicht darstellbare benötigte
 Zwischen-/Endwerte bleiben Fehler. Keine Änderung der BSM-Formel, Greeks-
 Domäne, Toleranzen oder Preis-/Dividendenkonventionen.
+
+## ADR-015 – Sitzungsdatum als Yahoo-Intervallvertrag (2026-10-13, #62)
+
+Daily-Barlabels werden für den Requestvertrag in `History.timezone` konvertiert
+und anhand des lokalen Sitzungsdatums gegen start-inklusive/end-exklusive
+geprüft. UTC-Datum oder Abrufzeit wären bei Börsenzeitzonen/DST ungeeignet.
+Online und Replay verwenden dieselbe Prüfung, vor jedem Online-Cache-Schreiben.
+Hash und Requestidentität ersetzen die fachliche Intervallprüfung nicht.
+Ungültige Sessions sind symbolbezogene `DataError`; gültige Lücken bleiben
+unverändert. Kein Börsenkalender, Füllen oder neuer Cache-Schemawechsel.

@@ -34,6 +34,16 @@ OHLC muss positiv endlich und konsistent sein, Volumen/Aktionen nichtnegativ.
 Daily-Zeitstempel sind Barlabels, keine Tickzeiten. Unsortierte, doppelte
 Zeitstempel/Sessions, fehlende Metadaten und NaNs werden abgelehnt; kein Füllen.
 
+`YahooClient.history` prüft jeden Bar gegen das angefragte Intervall anhand
+seines Sitzungsdatums nach Konversion in `History.timezone`: start inklusive,
+end exklusiv. Das gilt identisch für Online-Antworten und Cache-Replays,
+einschließlich DST und von UTC abweichender Datumsgrenzen. Außerhalb liegende
+Sessions führen zu einer symbolbezogenen `DataError`, bevor Daten gecacht
+werden; ein vorhandener gültiger Cache bleibt erhalten. Ein passender Hash
+allein macht einen alten Cache mit falschem Datumsintervall nicht gültig.
+Teilintervalle und Feiertags-/Wochenendlücken sind zulässig. Keine Prüfung
+auf einen vollständigen Börsenkalender, keine synthetischen Sessions.
+
 Explizite Flags: auto_adjust=False, back_adjust=False, actions=True,
 repair=False (nur mit `--repair` opt-in), keepna=True, rounding=False.
 Yahoo Close ist bereits splitbereinigt; Adj Close zusätzlich dividendenbereinigt.
@@ -56,6 +66,14 @@ Einheiten, leere/partielle/NaN-Antworten, DST, begrenzte Retries, unbekannte
 Quoteverzögerung, Polling, unsupported Stream, Cachehash und Offline-CLI.
 Red: fehlendes Modul; zusätzlicher Live-Schema-Bug als roter Regressionstest
 (Provider konvertiert regularMarketTime zu aware Timestamp), danach grün.
+
+Regression #62 ergänzt 24 synthetische Fälle: acht ungültige Zeitlabels jeweils
+online und als Cache mit gültiger Identität/Hash, sieben gültige Intervalle und
+Schutz eines vorhandenen Cache vor einer ungültigen Providerantwort. UTC-,
+New-York-DST-Start/-Ende und Tokio-Datumswechsel werden anhand expliziter
+UTC-Zeitlabels gegen lokale Sitzungsdaten geprüft. Replay greift nie auf den
+Provider zu. Alle Daten bleiben synthetisch, ohne Netzwerk oder Systemzeit;
+Datumsgleichheit ist diskret und benötigt keine numerische Toleranz.
 
 Separater Live-Smoke 2026-10-08 10:32:51–10:32:52 UTC, yfinance 1.7.0,
 AAPL/MSFT, Timeout 8s, null Retries: Daily-Historien 2026-09-28 bis exklusiv

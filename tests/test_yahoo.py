@@ -1,3 +1,5 @@
+import json
+from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -40,6 +42,131 @@ class Provider:
             "REGULAR",
             "online",
         )
+
+
+class HistoryProvider(Provider):
+    def __init__(self, history):
+        super().__init__()
+        self.response = history
+
+    def history(self, ticker, start, end, timeout, repair):
+        self.calls += 1
+        return self.response
+
+
+def _synthetic_history(labels, zone):
+    return History(
+        "A",
+        "USD",
+        "TEST",
+        zone,
+        NOW,
+        tuple(
+            Bar(datetime.fromisoformat(label), 100, 101, 99, 100, 100, 0, 0, 0)
+            for label in labels
+        ),
+        False,
+    )
+
+
+@pytest.mark.parametrize("offline", [False, True])
+@pytest.mark.parametrize(
+    "zone,start,end,label",
+    [
+        ("UTC", "2026-01-05", "2026-01-06", "2020-01-01T00:00:00+00:00"),
+        ("UTC", "2026-01-05", "2026-01-06", "2026-01-04T23:59:59+00:00"),
+        ("UTC", "2026-01-05", "2026-01-06", "2026-01-06T00:00:00+00:00"),
+        ("UTC", "2026-01-05", "2026-01-06", "2026-01-07T00:00:00+00:00"),
+        # DST begins March 8: UTC is within the request, local session is not.
+        ("America/New_York", "2026-03-08", "2026-03-10", "2026-03-08T04:59:59+00:00"),
+        ("America/New_York", "2026-03-08", "2026-03-10", "2026-03-10T04:00:00+00:00"),
+        ("Asia/Tokyo", "2026-01-05", "2026-01-06", "2026-01-05T15:00:00+00:00"),
+        # DST ends November 1: exclusive end is midnight EST (05:00 UTC).
+        ("America/New_York", "2026-11-01", "2026-11-02", "2026-11-02T05:00:00+00:00"),
+    ],
+)
+def test_history_rejects_outside_local_sessions_online_and_cache(
+    tmp_path, offline, zone, start, end, label
+):
+    bad = _synthetic_history([label], zone)
+    provider = HistoryProvider(bad)
+    client = YahooClient(provider=provider, cache=tmp_path, retries=0)
+    if offline:
+        # Seed a legitimate cache, then model an old, internally consistent
+        # cache containing out-of-request data. Hash/identity remain valid.
+        provider.response = _synthetic_history([f"{start}T12:00:00+00:00"], zone)
+        client.history(["A"], start=start, end=end)
+        path = next(tmp_path.glob("*.json"))
+        payload = json.loads(path.read_text())
+        payload.update(history=asdict(bad), hash=bad.data_hash)
+        path.write_text(json.dumps(payload, default=lambda value: value.isoformat()))
+        before = path.read_bytes()
+        calls = provider.calls
+    with pytest.raises(DataError, match="A:.*outside.*interval"):
+        client.history(["A"], start=start, end=end, offline=offline)
+    if offline:
+        assert provider.calls == calls
+        assert path.read_bytes() == before
+    else:
+        assert provider.calls == 1
+        assert list(tmp_path.glob("*.json")) == []
+
+
+@pytest.mark.parametrize(
+    "zone,start,end,labels",
+    [
+        ("UTC", "2026-01-05", "2026-01-06", ["2026-01-05T00:00:00+00:00"]),
+        ("UTC", "2026-01-05", "2026-01-06", ["2026-01-05T23:59:59+00:00"]),
+        ("Asia/Tokyo", "2026-01-05", "2026-01-06", ["2026-01-04T15:00:00+00:00"]),
+        (
+            "America/New_York",
+            "2026-03-08",
+            "2026-03-10",
+            ["2026-03-08T05:00:00+00:00", "2026-03-09T04:00:00+00:00"],
+        ),
+        ("America/New_York", "2026-03-08", "2026-03-10", ["2026-03-10T03:59:59+00:00"]),
+        ("America/New_York", "2026-11-01", "2026-11-02", ["2026-11-02T04:59:59+00:00"]),
+        # Good Friday / weekend gaps are deliberately not filled or rejected.
+        (
+            "UTC",
+            "2026-04-02",
+            "2026-04-07",
+            ["2026-04-02T00:00:00+00:00", "2026-04-06T00:00:00+00:00"],
+        ),
+    ],
+)
+def test_history_accepts_local_inclusive_start_exclusive_end_and_partial_intervals(
+    tmp_path, zone, start, end, labels
+):
+    expected = _synthetic_history(labels, zone)
+    provider = HistoryProvider(expected)
+    client = YahooClient(provider=provider, cache=tmp_path, retries=0)
+    live = client.history(["A"], start=start, end=end)["A"]
+    replay = client.history(["A"], start=start, end=end, offline=True)["A"]
+    assert live == expected
+    assert replay == replace(expected, source_mode="cache")
+    assert provider.calls == 1
+    assert [bar.time.isoformat() for bar in replay.bars] == labels
+
+
+def test_invalid_response_does_not_overwrite_previous_valid_cache(tmp_path):
+    provider = Provider()
+    client = YahooClient(provider=provider, cache=tmp_path)
+    client.history(["A"], start="2026-01-01", end="2026-01-06")
+    path = next(tmp_path.glob("*.json"))
+    before = path.read_bytes()
+    client.provider = HistoryProvider(
+        _synthetic_history(["2020-01-01T00:00:00+00:00"], "UTC")
+    )
+    with pytest.raises(DataError, match="A:.*outside.*interval"):
+        client.history(["A"], start="2026-01-01", end="2026-01-06")
+    assert path.read_bytes() == before
+    assert (
+        client.history(["A"], start="2026-01-01", end="2026-01-06", offline=True)["A"]
+        .bars[0]
+        .time
+        == NOW
+    )
 
 
 def test_history_cache_replay_without_network_and_age(tmp_path):
