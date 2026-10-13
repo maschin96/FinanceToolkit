@@ -25,6 +25,21 @@ Attributions-CSV/JSON pro Variante. Optional comparison.png zeigt aus denselben
 Ergebnissen mittleres Vermögen. Vollständige Ausgangsparameter und Basiswerte
 machen auch übergebene nichtsynthetische Märkte prüfbar.
 
+Die Attributionsdateien liegen unter `hedge/<Vergleichsname>/attribution.json`
+und `.csv` beziehungsweise `strategy/<Strategiename>/attribution.json` und
+`.csv`. Damit bleiben auch gleichnamige Hedge-/Strategiebücher separat.
+`comparison.json` führt unter `attributions` für jedes Buch `kind`, `name`
+und die relativen Dateipfade `json`/`csv` auf. Dieselben Identitäten `kind`/`name`
+gelten in `wealth.csv` und `ledgers.csv`. Ein erneuter numerischer Export
+derselben Resultate ersetzt dieselben Dateien mit identischem Inhalt.
+
+Migration ab der Korrektur #59 auf dem M4-Branch: Bisherige Pfade
+`<Name>/attribution.*` werden nicht mehr geschrieben. Verbraucher müssen den
+zusätzlichen `hedge`-/`strategy`-Pfadteil berücksichtigen oder die Zuordnung
+aus `comparison.json` lesen. Vorhandene Dateien aus alten Exporten werden
+nicht gelöscht; für die Migration ein neues Ausgabeverzeichnis verwenden.
+Tabellen, Modellwerte und Kennzahlen bleiben unverändert.
+
 P&L = Endvermögen minus Anfangskapital, inklusive Openinggebühren. VaR/ES
 sind probabilistische empirische Verlustkennzahlen mit 95% Konfidenz, keine
 Stresswerte. Rendite nur bei positiver Kapitalbasis, Drawdown nur bei überall
@@ -39,3 +54,10 @@ verfallene Position mit Openingpremium im Cash; Anfangsvermögen bleibt 1000.
 Kalenderkontrolle nutzt exakt dieselben Spots, Stride 2, denselben Openingquote.
 CSV/JSON werden gegen die verifizierten Kernresultate geprüft, CLI-Doppellauf mit
 Seed 123 ist identisch; PNG-Signatur und Pflichtartefakte werden kontrolliert.
+
+Regression #59 verwendet alle fünf Strategienamen auch als Hedge-Vergleichsnamen
+auf zwei Pfaden (100→110→120 und 100→90→80). JSON und sämtliche numerischen
+CSV-Attributionsfelder werden verlustfrei mit den Kernresultaten verglichen;
+die separate P&L-Bilanz verwendet 1e-10 Währung absolut und 1e-12 relativ bei
+Kapital 1000. Ein zweiter Export wird für alle numerischen Dateien bytegenau
+verglichen; das Manifest ordnet beide Bücher eindeutig zu.

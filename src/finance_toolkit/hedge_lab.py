@@ -205,7 +205,12 @@ def compare_hedges(
 def export_comparison(
     result: Comparison, directory: Path, *, plot: bool = False
 ) -> None:
-    """CSV/JSON including full config, actual ledgers and attribution; optional PNG."""
+    """CSV/JSON ledgers and attribution; optional PNG.
+
+    Attribution paths use kind/name namespaces (hedge or strategy), listed as
+    relative paths in comparison.json. Re-exporting replaces the same files.
+    Legacy name-only attribution directories are neither written nor removed.
+    """
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "comparison.json").write_text(
         json.dumps(
@@ -213,6 +218,19 @@ def export_comparison(
                 "config": result.config,
                 "metrics": result.metrics,
                 "strategies": result.strategy_metrics,
+                "attributions": [
+                    {
+                        "kind": kind,
+                        "name": name,
+                        "json": f"{kind}/{name}/attribution.json",
+                        "csv": f"{kind}/{name}/attribution.csv",
+                    }
+                    for kind, books in [
+                        ("hedge", result.books),
+                        ("strategy", result.strategies),
+                    ]
+                    for name in books
+                ],
             },
             indent=2,
             allow_nan=False,
@@ -275,7 +293,7 @@ def export_comparison(
                                 else None,
                             ]
                         )
-                export_attribution(attribute_book(book), directory / name)
+                export_attribution(attribute_book(book), directory / kind / name)
     fine_book = next(iter(result.strategies.values()))
     with (directory / "market.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
