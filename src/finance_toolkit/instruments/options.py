@@ -53,6 +53,8 @@ def black_scholes(
     rate/dividend_yield continuous annual decimal rates (may be negative).
     Spot can be zero; strike must be positive. At expiry return intrinsic value;
     at zero volatility return discounted deterministic forward payoff.
+    Only relevant branches are evaluated: expiry ignores finite r/q/sigma;
+    zero-spot call is zero and zero-spot put needs only the discounted strike.
     This API accepts risk-free rate, never the real-world simulation drift.
     Raises ValueError for invalid inputs or unrepresentable numeric results.
     """
@@ -68,17 +70,26 @@ def black_scholes(
         )
     try:
         with np.errstate(over="raise", invalid="raise", divide="raise", under="ignore"):
-            ds, dk = s * np.exp(-q * t), k * np.exp(-r * t)
-            active = (s > 0) & (t > 0) & (sigma > 0)
-            scale = np.where(active, sigma * np.sqrt(t), 1.0)
-            # Evaluate only active inputs to avoid log(0) and sigma² overflow at T=0.
-            safe_s = np.where(active, s, 1.0)
-            safe_k = np.where(active, k, 1.0)
-            safe_t = np.where(active, t, 0.0)
-            safe_sigma = np.where(active, sigma, 0.0)
-            d1 = (
-                np.log(safe_s) - np.log(safe_k) + (r - q + safe_sigma**2 / 2) * safe_t
-            ) / scale
+            result = np.zeros(s.shape, dtype=np.float64)
+            expiry = t == 0
+            if np.any(expiry):
+                result[expiry] = option_payoff(s[expiry], k[expiry], kind=kind)
+            zero_spot = (s == 0) & ~expiry
+            if kind == "put":
+                result[zero_spot] = k[zero_spot] * np.exp(-r[zero_spot] * t[zero_spot])
+
+            positive = (s > 0) & ~expiry
+            ps, pk, pt, pv, pr, pq = (x[positive] for x in (s, k, t, sigma, r, q))
+            ds, dk = ps * np.exp(-pq * pt), pk * np.exp(-pr * pt)
+            prices = np.maximum(ds - dk if kind == "call" else dk - ds, 0)
+            active = pv > 0
+            # Boolean selection removes inactive elements before any r-q,
+            # sigma², log or division is evaluated; np.where would evaluate both.
+            ps, pk, pt, pv, pr, pq, ds, dk = (
+                x[active] for x in (ps, pk, pt, pv, pr, pq, ds, dk)
+            )
+            scale = pv * np.sqrt(pt)
+            d1 = (np.log(ps) - np.log(pk) + (pr - pq + pv**2 / 2) * pt) / scale
             d2 = d1 - scale
             call = ds * ndtr(d1) - dk * ndtr(d2)
             put = dk * ndtr(-d2) - ds * ndtr(-d1)
@@ -86,8 +97,8 @@ def black_scholes(
             call = np.where(ds <= dk, call, put + ds - dk)
             put = np.where(ds >= dk, put, call + dk - ds)
             analytic = call if kind == "call" else put
-            deterministic = np.maximum(ds - dk if kind == "call" else dk - ds, 0)
-            result = np.where(active, np.maximum(analytic, 0), deterministic)
+            prices[active] = np.maximum(analytic, 0)
+            result[positive] = prices
     except FloatingPointError as error:
         raise ValueError("option parameters produce unrepresentable values") from error
     if not np.all(np.isfinite(result)):
