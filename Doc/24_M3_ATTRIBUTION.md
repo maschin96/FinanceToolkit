@@ -18,6 +18,14 @@ Gemischte Ableitungen/höhere Ordnungen liegen im Rest. Keine eindeutige kausale
 Attribution. Bei Verfall und nichtglatten Anfangsgrenzen gibt es ein Ereignisflag,
 keine Taylor-Aussage: Komponenten null, tatsächliche Bewegung im Ereignisrest.
 
+Fälligkeitszuordnung wie im Optionsbuch: Zeitpunkte mit absolutem Abstand von
+höchstens 1e-10 Jahren zur Vertragsfälligkeit gelten in `explain_option_move`
+als exakte Fälligkeit, für Anfang und Ende. Die Reihenfolge der ursprünglichen
+Zeitpunkte und nichtnegative Zeiten werden vorher geprüft; echte Zeiten nach
+Fälligkeit außerhalb dieser Toleranz bleiben Fehler. Das Buch behält seine
+Originalrasterzeiten in der Attribution und im Export. Auch ein wertloser
+Verfall erhält das Ereignisflag; spätere Intervalle ohne Bestand nicht.
+
 Positionen: (Pfade, Intervalle, Instrumente), Finanzierung/P&L: (Pfade, Intervalle).
 Relative Intervall-P&L ist bei nichtpositiver Anfangsbasis `None`, JSON null.
 CSV zeigt dieselben Positionen plus ausdrücklich benannte Portfolio-Finanzierung
@@ -29,3 +37,11 @@ reconcilieren mit 1e-10 Währungstoleranz (kleine Kapitalgrößen bis 1000). Sep
 kleine Spot-/Vol-/Zins-/Zeitschocks zeigen kleiner werdenden Taylor-Rest bei
 halbiertem Schock. Die automatische Bilanzkontrolle verwendet zusätzlich 1e-12
 relative Rundungstoleranz bei großen Buchwerten.
+
+Regression #58 prüft Call/Put, Long/Short und Multiplikatoren 1/10 bei exakter
+Fälligkeit und ±5e-11 Jahren. Handpayoffs 20/0 je Underlying-Einheit bestimmen
+den einmaligen Barausgleich; Vermögen und Intervallbilanz verwenden weiterhin
+1e-10 Währung absolut und 1e-12 relativ bei Kapital 1000. JSON-/CSV-Exporte,
+wertloser Verfall und das Folgeintervall werden mitgeprüft. Außerhalb der
+Zuordnungstoleranz bleiben glatte Bewegungen vor Fälligkeit möglich und
+fehlende Fälligkeitsraster beziehungsweise echte Zeiten nach Fälligkeit Fehler.
