@@ -33,7 +33,8 @@ Portfolio-Exposures, Stressszenarien und Aktien-/Cash-Rebalancing mit Kostenverg
 [Verifikation und Release-Stand](20_M2_VERIFICATION.md); #28 und M2 sind nach
 Veröffentlichung von v0.2.0 geschlossen.
 Kalibrierung aus Marktdaten, stochastische Zinsen, amerikanische Optionen,
-empirisches Backtesting, Optimierung, FX und Oberfläche bleiben spätere Erweiterungen.
+empirisches Backtesting, Optimierung und FX bleiben spätere Erweiterungen.
+Eine Terminal-Oberfläche ist jetzt für M5 geplant.
 
 ## Abnahmestand M1
 
@@ -50,3 +51,36 @@ Delta-Hedging, Optionsstrategien, Attribution, gekoppelte Vergleiche, Yahoo-
 Adapter und eigene Indizes. [Gesamtverifikation](28_M3_VERIFICATION.md) und
 Release-Abschluss #47. HTML-Bericht G ist nicht beauftragt. Spätere oben genannte
 Erweiterungen bleiben außerhalb des aktuellen Pflichtumfangs.
+
+## M4 – Stabilisierung und Robustheit
+
+[M4](https://github.com/maschin96/FinanceToolkit/milestone/5) bündelt die
+Stabilisierung des vorhandenen M3-Funktionsumfangs mit Ziel v0.3.1.
+Releaseabschluss und Pflichtumfang werden in
+[#66](https://github.com/maschin96/FinanceToolkit/issues/66) verfolgt.
+M4 ist Voraussetzung für die funktionale Umsetzung von M5.
+
+## M5 – FinanceToolkit Textual-TUI
+
+[Detailplanung](29_M5_TUI_ROADMAP.md),
+[Planungsissue #73](https://github.com/maschin96/FinanceToolkit/issues/73) und
+[Milestone M5](https://github.com/maschin96/FinanceToolkit/milestone/6).
+Ziel v0.4.0: optionale, vollständig tastaturbedienbare Terminal-App auf den
+bestehenden Toolkit-APIs, mit Offline-Demos und reproduzierbaren Exporten.
+
+| Issue | Ergebnis | Voraussetzung |
+| --- | --- | --- |
+| [#74](https://github.com/maschin96/FinanceToolkit/issues/74) | TUI-/API-Verträge und optionales Installationsprofil | M4/v0.3.1 abgeschlossen, stabil in main |
+| [#75](https://github.com/maschin96/FinanceToolkit/issues/75) | App, Navigation und Hintergrundjobs | #74 |
+| [#76](https://github.com/maschin96/FinanceToolkit/issues/76) | GBM, Einzelinstrumente und Portfolios | #74, #75 |
+| [#77](https://github.com/maschin96/FinanceToolkit/issues/77) | Portfolio-Risiken und Stress | #74–#76 |
+| [#78](https://github.com/maschin96/FinanceToolkit/issues/78) | Strategien, Hedging und Attribution | #74–#77 |
+| [#79](https://github.com/maschin96/FinanceToolkit/issues/79) | Eigene Indizes und optionale Yahoo-Daten | #74, #75 |
+| [#80](https://github.com/maschin96/FinanceToolkit/issues/80) | Workspaces, Konfigurationen und Exporte | #74–#79 |
+| [#81](https://github.com/maschin96/FinanceToolkit/issues/81) | Gesamtverifikation und Release v0.4.0 | #74–#80 |
+
+Alle acht Arbeitspakete sind Release-Pflichtumfang. Planung ist keine
+Implementierung; keine Deadline ohne belastbare Schätzung. Erst nach
+vollständigem M4-Abschluss und bei Umsetzungsbeginn `codex/milestone-m5`
+vom aktuellen stabilen main anlegen. Issue-PRs dorthin, Release-PR nach main
+erst bei Freigabereife; #81/M5 erst nach vollständiger Veröffentlichung schließen.

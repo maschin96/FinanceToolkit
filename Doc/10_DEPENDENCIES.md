@@ -77,3 +77,12 @@ bleiben verpflichtend. Ihr Testbericht darf keinen Übersprung enthalten.
 Keine neue Abhängigkeit und keine Änderung von Versionslocks, Tokenrechten
 oder Action-Pins. Dies ist Installations-/Adapterverifikation, keine empirische
 Marktvalidierung oder Änderung numerischer Toleranzen.
+
+## Geplantes TUI-Extra für M5 (#74)
+
+Textual ist als optionale UI-Abhängigkeit für `tui` vorgesehen,
+noch nicht in pyproject.toml/uv.lock aufgenommen. Die
+[Projektlizenz ist MIT](https://github.com/Textualize/textual/blob/main/LICENSE).
+Vor Aufnahme konkrete Version und direkte/transitive Lizenzmetadaten prüfen;
+Python 3.11–3.13, Basis ohne UI-Imports und TUI ohne plots/yahoo verifizieren.
+Details und Installations-/CI-Abnahme im [M5-Plan](29_M5_TUI_ROADMAP.md).

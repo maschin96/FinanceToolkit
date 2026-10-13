@@ -202,3 +202,22 @@ Index-JSON-Typen und Pflichtfelder werden vor Providerzugriff ausdrücklich
 geprüft; Symbole werden nur als Strings normalisiert. Ein pauschales Abfangen
 von `TypeError`/`KeyError` am Index-CLI-Ende entfällt, damit interne Programmier-
 fehler sichtbar bleiben. Bibliotheksverträge und gültige Exportwerte unverändert.
+
+## Planungsentscheidung M5 – Textual als optionaler TUI-Adapter (2026-10-13, #73)
+
+Der Eigentümer hat Textual für die nächste Terminal-App bestätigt.
+[M5-Detailplan](29_M5_TUI_ROADMAP.md) und Issues #74–#81 legen die Abnahme fest.
+Die Oberfläche nutzt bestehende öffentliche Toolkit-APIs; keine duplizierten
+Bewertungsformeln oder UI-Imports im numerischen Kern. Ein optionales `tui`-Extra
+erhält die schlanke Basisinstallation; `plots` und `yahoo` bleiben getrennt.
+Textuals Worker und Headless-Tests unterstützen die geplanten Bedienabläufe.
+Die [Projektlizenz ist MIT](https://github.com/Textualize/textual/blob/main/LICENSE);
+konkrete Version, transitive Lizenzen und Python-3.11–3.13-Kompatibilität werden
+vor Aufnahme in #74 geprüft. Es wird jetzt keine Dependency installiert.
+
+Läufe verwenden Eingabesnapshots und Lauf-IDs; geänderte Parameter machen
+Ergebnisse sichtbar veraltet. Abbruch verwirft spätere Ergebnisse, stoppt einen
+laufenden Thread-Kernaufruf jedoch nicht zwingend sofort. Begrenzte Jobs,
+vollständige Exportwerte und versionierte Konfigurationen sind Pflicht.
+Diese Architektur ist geplant, noch nicht implementiert; M4/v0.3.1 muss vor
+Arbeitsbeginn vollständig abgeschlossen und stabil in main sein.
