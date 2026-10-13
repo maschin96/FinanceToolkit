@@ -61,3 +61,10 @@ CSV-Attributionsfelder werden verlustfrei mit den Kernresultaten verglichen;
 die separate P&L-Bilanz verwendet 1e-10 Währung absolut und 1e-12 relativ bei
 Kapital 1000. Ein zweiter Export wird für alle numerischen Dateien bytegenau
 verglichen; das Manifest ordnet beide Bücher eindeutig zu.
+
+Numerische Grenze #60: Auch Vergleichskennzahlen müssen endlich sein.
+Nicht darstellbare P&L-, Quadrat-, Mittelwert- oder Summenzwischenwerte
+lösen `ValueError` aus. Endliche Einzelwerte garantieren daher nicht, dass
+jede extreme Vergleichskonfiguration aggregierbar ist; keine RuntimeWarning
+oder inf/nan als scheinbar gültige Kennzahl. Negative Vermögen bleiben für
+absolute Kennzahlen zulässig, relative Kennzahlen behalten ihre Basisregeln.

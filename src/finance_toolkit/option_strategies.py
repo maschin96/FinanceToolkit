@@ -6,6 +6,7 @@ from typing import Literal
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from finance_toolkit._numerics import finite_result, numeric_errors
 from finance_toolkit._validation import finite_array, finite_float
 from finance_toolkit.instruments.options import option_payoff
 from finance_toolkit.options_book import BookInstrument, Order
@@ -28,6 +29,11 @@ class OptionStrategy:
     instruments: tuple[BookInstrument, ...]
     quantities: tuple[float, ...]
 
+    def __post_init__(self) -> None:
+        finite_array(self.quantities, "strategy quantities")
+        if len(self.instruments) != len(self.quantities):
+            raise ValueError("strategy quantities must match instruments")
+
     def orders(self, *, close: bool = False) -> tuple[Order, ...]:
         """Opening or opposite closing quantities; execution quotes from ledger."""
         return tuple(
@@ -41,8 +47,9 @@ class OptionStrategy:
             for x, q in zip(self.instruments, self.quantities, strict=True)
         )
 
+    @numeric_errors("strategy payoff")
     def payoff(self, terminal_spot: ArrayLike) -> NDArray[np.float64]:
-        """Sum of undiscounted legs at their common expiry, one currency."""
+        """Sum of legs in currency; ValueError if a leg or sum is unrepresentable."""
         spots = finite_array(terminal_spot, "terminal_spot")
         if np.any(spots < 0):
             raise ValueError("terminal spot must be nonnegative")
@@ -56,7 +63,7 @@ class OptionStrategy:
                     * instrument.multiplier
                     * option_payoff(spots, instrument.strike, kind=instrument.kind)
                 )
-        return result
+        return finite_result(result, "strategy payoff")
 
 
 def build_strategy(
@@ -88,6 +95,7 @@ def build_strategy(
     put_low = EuropeanOption(
         asset, lower_strike, maturity, volatility, "put", multiplier, dividend_yield
     )
+    multiplier = put_low.multiplier
     put_high = EuropeanOption(
         asset, upper_strike, maturity, volatility, "put", multiplier, dividend_yield
     )

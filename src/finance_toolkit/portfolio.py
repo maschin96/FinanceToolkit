@@ -8,6 +8,7 @@ from typing import TypeAlias
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from finance_toolkit._numerics import net_wealth
 from finance_toolkit._validation import finite_array, finite_float
 from finance_toolkit.instruments.bonds import TIME_TOLERANCE, Bond
 from finance_toolkit.instruments.options import OptionKind, black_scholes, option_payoff
@@ -125,10 +126,8 @@ class PortfolioPaths:
 
     @property
     def wealth(self) -> NDArray[np.float64]:
-        """Cash plus current instrument market values, including short liabilities."""
-        return np.asarray(
-            self.cash + self.instrument_values.sum(axis=-1), dtype=np.float64
-        )
+        """Finite cash plus signed values; ValueError for unrepresentable wealth."""
+        return net_wealth(self.cash, self.instrument_values)
 
 
 def _grid_index(times: NDArray[np.float64], time: float) -> int:

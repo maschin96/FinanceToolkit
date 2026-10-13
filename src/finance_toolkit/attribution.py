@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from finance_toolkit._numerics import finite_result, numeric_errors
 from finance_toolkit._validation import finite_float
 from finance_toolkit.instruments.bonds import TIME_TOLERANCE
 from finance_toolkit.instruments.options import black_scholes, option_greeks
@@ -15,6 +16,7 @@ from finance_toolkit.options_book import BookPaths
 from finance_toolkit.portfolio import EuropeanOption, Stock
 
 
+@numeric_errors("option attribution")
 def explain_option_move(
     option: EuropeanOption,
     *,
@@ -71,6 +73,7 @@ def explain_option_move(
         )
     )
     scale = quantity * option.multiplier
+    finite_result(scale, "option attribution scale")
     actual = scale * (end - start)
     result: dict[str, float | bool] = {
         name: 0.0 for name in ("delta", "gamma", "vega", "theta", "rho")
@@ -103,6 +106,10 @@ def explain_option_move(
         float(result[x]) for x in ("delta", "gamma", "vega", "theta", "rho")
     )
     result.update(actual=actual, residual=actual - approximation, event=event)
+    finite_result(
+        [float(value) for name, value in result.items() if name != "event"],
+        "option attribution components",
+    )
     return result
 
 
@@ -132,21 +139,24 @@ class Attribution:
     relative_pnl: list[list[float | None]]
 
     @property
+    @numeric_errors("attribution approximation")
     def approximation(self) -> NDArray[np.float64]:
-        return np.asarray(
+        return finite_result(
             self.delta + self.gamma + self.vega + self.theta + self.rho,
-            dtype=np.float64,
+            "attribution approximation",
         )
 
     @property
+    @numeric_errors("attribution reconciliation")
     def reconciled(self) -> NDArray[np.float64]:
-        return np.asarray(
+        return finite_result(
             (self.market + self.execution - self.fees - self.borrow).sum(axis=-1)
             + self.financing,
-            dtype=np.float64,
+            "attribution reconciliation",
         )
 
 
+@numeric_errors("book attribution")
 def attribute_book(book: BookPaths) -> Attribution:
     """Reconcile actual book intervals using unchanged beginning holdings.
 
@@ -227,6 +237,8 @@ def attribute_book(book: BookPaths) -> Attribution:
         events,
         relative,
     )
+    for array in (market, execution, delta, gamma, vega, theta, rho, residual, pnl):
+        finite_result(array, "book attribution components")
     if not np.allclose(result.reconciled, pnl, rtol=1e-12, atol=1e-10):
         raise ValueError("book P&L does not reconcile")
     return result
