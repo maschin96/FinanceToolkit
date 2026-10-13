@@ -59,6 +59,16 @@ Beide Beispiele sind offline. [Hedge-Lab](Doc/26_M3_HEDGE_LAB.md),
 [eigene Indizes](Doc/27_M3_CUSTOM_INDICES.md). Aktien-Shorts und Cashkredite
 benötigen explizite Freigabe; keine Margin- oder Brokeranbindung.
 
+## Geplant: M5 – Terminal-App
+
+Nach dem Stabilisierungsmilestone M4 ist eine optionale **Textual-TUI** geplant:
+Simulation und Portfolios konfigurieren, Risiken/Stress prüfen, Strategien und
+Hedges vergleichen sowie eigene Indizes und reproduzierbare Exporte bedienen.
+[M5-Plan und Abnahmekriterien](Doc/29_M5_TUI_ROADMAP.md) ·
+[GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
+Ziel v0.4.0; Umsetzung erst nach vollständigem M4/v0.3.1-Abschluss. Die TUI und
+das Installations-Extra `tui` sind noch nicht verfügbar.
+
 ## Eigene Portfolios
 
 ```python

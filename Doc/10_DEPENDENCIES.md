@@ -50,3 +50,12 @@ fehlte der License-Metadateneintrag, die enthaltene MIT-Lizenz wurde gelesen.
 Binärwheels (z.B. curl-cffi/lxml) bringen zusätzliche Drittkomponentenhinweise
 mit; diese nicht entfernen, bei separater Bündelung vollständig prüfen.
 Softwarelizenzen gewähren keine Marktdatenrechte; siehe [Yahoo-Vertrag](25_M3_YAHOO.md).
+
+## Geplantes TUI-Extra für M5 (#74)
+
+Textual ist als optionale UI-Abhängigkeit für `tui` vorgesehen,
+noch nicht in pyproject.toml/uv.lock aufgenommen. Die
+[Projektlizenz ist MIT](https://github.com/Textualize/textual/blob/main/LICENSE).
+Vor Aufnahme konkrete Version und direkte/transitive Lizenzmetadaten prüfen;
+Python 3.11–3.13, Basis ohne UI-Imports und TUI ohne plots/yahoo verifizieren.
+Details und Installations-/CI-Abnahme im [M5-Plan](29_M5_TUI_ROADMAP.md).
