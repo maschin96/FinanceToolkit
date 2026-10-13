@@ -1,5 +1,27 @@
 # Änderungen
 
+## 0.3.1 – 2026-10-13
+
+- Einheitliche Fälligkeitstoleranz für Optionsbuch und Attribution, einschließlich
+  einmaligem Settlement, Long/Short und Vertragsmultiplikatoren (#58).
+- Separate Attributionspfade `hedge/<name>` und `strategy/<name>` mit Manifest;
+  gleichnamige Bücher überschreiben sich nicht mehr (#59).
+- Endliche numerische Ergebnisverträge und robuste Nettoaggregation bei großen
+  gegenläufigen Positionen; explizite Fehler statt inf/nan (#60).
+- BSM-Grenzfälle berechnen ausschließlich benötigte Zweige (#61).
+- Yahoo-Historien prüfen lokale Sitzungsdaten gegen das inklusive/exklusive
+  Requestintervall, online und beim Offline-Replay (#62).
+- Separates Basisprofil ohne Extras; vollständige Python-3.11–3.13-Matrix
+  ohne Testauslassungen (#63).
+- Einheitliche knappe CLI-Eingabefehler ohne Traceback und frühe Index-JSON-
+  Validierung vor Providerzugriff (#64).
+- Lokale Wiederverwendung von Vermögen und Reconciliation in Attribution/
+  Export; identische numerische Ergebnisse und Exportdateien (#65).
+
+Wartungsrelease ohne neue Finanzmodelle oder Pflichtabhängigkeiten.
+[Gesamtverifikation](Doc/30_M4_VERIFICATION.md), Releaseabschluss #66.
+Keine empirische Marktvalidierung und keine PyPI-Veröffentlichung.
+
 ## 0.3.0 – 2026-10-08
 
 - Dynamisches Optionsbuch mit pfadabhängigen Orders, Settlement und Cashbilanz.

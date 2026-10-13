@@ -60,6 +60,15 @@ Releaseabschluss und Pflichtumfang werden in
 [#66](https://github.com/maschin96/FinanceToolkit/issues/66) verfolgt.
 M4 ist Voraussetzung für die funktionale Umsetzung von M5.
 
+Alle Pflichtissues #58–#65 sind über PRs #67–#72, #83 und #84 geprüft
+in `codex/milestone-m4` integriert und explizit geschlossen.
+[Gesamtverifikation](30_M4_VERIFICATION.md): Fälligkeits-/Cash-/Attributions-
+bilanzen, numerische Grenzen, Daten-/CLI-Verträge, optionale Profile und
+[Exportprofil](29_M4_EXPORT_PROFILE.md). Version 0.3.1 ist das Wartungsrelease.
+Der vollständige Veröffentlichungsnachweis (Release-PR nach main,
+Zielcommit-CI, Tag und öffentliche Pakete) wird in #66 festgehalten.
+Der dortige Abschluss belegt die Freigabe von M4 für den Beginn von M5.
+
 ## M5 – FinanceToolkit Textual-TUI
 
 [Detailplanung](29_M5_TUI_ROADMAP.md),
