@@ -5,7 +5,7 @@ import csv
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
@@ -281,6 +281,38 @@ def demo_histories(tickers: Sequence[str]) -> dict[str, History]:
     return result
 
 
+def _read_config(path: Path, *, demo: bool) -> dict[str, Any]:
+    """Validate JSON input types before model/provider work, without coercion."""
+    config = json.loads(path.read_text())
+    if not isinstance(config, dict):
+        raise ValueError("index configuration must be a JSON object")
+    tickers = config.get("tickers")
+    if (
+        not isinstance(tickers, list)
+        or not tickers
+        or any(not isinstance(x, str) or not x.strip() for x in tickers)
+    ):
+        raise ValueError("tickers must be a nonempty array of nonempty strings")
+    symbols = tuple(x.strip().upper() for x in tickers)
+    if len(set(symbols)) != len(symbols):
+        raise ValueError("distinct tickers required after normalization")
+    required = ("base_date",) if demo else ("base_date", "start", "end")
+    for name in ("base_date", "start", "end"):
+        if name in required or name in config:
+            value = config.get(name)
+            if not isinstance(value, str):
+                raise ValueError(f"{name} must be an ISO date string")
+            date.fromisoformat(value)
+    signals = config.get("rebalance_dates", [])
+    if not isinstance(signals, list) or any(not isinstance(x, str) for x in signals):
+        raise ValueError("rebalance_dates must be an array of ISO date strings")
+    for signal in signals:
+        date.fromisoformat(signal)
+    if "repair" in config and type(config["repair"]) is not bool:
+        raise ValueError("repair must be boolean")
+    return config
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Custom indices from Yahoo cache or synthetic demo"
@@ -293,14 +325,8 @@ def main() -> None:
     parser.add_argument("--plot", action="store_true")
     args = parser.parse_args()
     try:
-        config = json.loads(args.config.read_text())
-        tickers = tuple(str(x).strip().upper() for x in config["tickers"])
-        if (
-            not tickers
-            or len(set(tickers)) != len(tickers)
-            or any(not x for x in tickers)
-        ):
-            raise ValueError("nonempty distinct tickers required")
+        config = _read_config(args.config, demo=args.demo)
+        tickers = tuple(x.strip().upper() for x in config["tickers"])
         histories = (
             demo_histories(tickers)
             if args.demo
@@ -329,7 +355,7 @@ def main() -> None:
         )
         result.metadata["input_config"] = config
         export_indices(result, args.output, plot=args.plot)
-    except (DataError, ValueError, OSError, KeyError, ImportError, TypeError) as error:
+    except (DataError, ValueError, OSError, ImportError) as error:
         parser.exit(1, f"{error}\n")
 
 

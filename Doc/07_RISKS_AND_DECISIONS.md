@@ -190,3 +190,15 @@ Online und Replay verwenden dieselbe Prüfung, vor jedem Online-Cache-Schreiben.
 Hash und Requestidentität ersetzen die fachliche Intervallprüfung nicht.
 Ungültige Sessions sind symbolbezogene `DataError`; gültige Lücken bleiben
 unverändert. Kein Börsenkalender, Füllen oder neuer Cache-Schemawechsel.
+
+## ADR-016 – Begrenzte CLI-Fehlergrenzen (2026-10-13, #64)
+
+Die fünf CLIs behandeln erwartete Fach-/Eingabefehler (`ValueError`), Provider-
+fehler (`DataError`), Dateifehler (`OSError`) und fehlende optionale Importe
+mit Exitcode 1 und knapper stderr-Meldung. Syntax-/Parserfehler bleiben 2,
+Erfolg 0 und Yahoo-Polling-Abbruch 130. YahooClient-Konstruktion gehört in
+diese Grenze, damit ungültige Timeout-/Retrywerte keinen Traceback auslösen.
+Index-JSON-Typen und Pflichtfelder werden vor Providerzugriff ausdrücklich
+geprüft; Symbole werden nur als Strings normalisiert. Ein pauschales Abfangen
+von `TypeError`/`KeyError` am Index-CLI-Ende entfällt, damit interne Programmier-
+fehler sichtbar bleiben. Bibliotheksverträge und gültige Exportwerte unverändert.

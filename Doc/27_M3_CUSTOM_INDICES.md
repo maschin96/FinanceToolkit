@@ -14,6 +14,16 @@ explizites intersection, rebalance buy_and_hold/monthly/explicit und ggf.
 rebalance_dates, repair (default false). Es gibt keinen historischen
 Marktkapitalisierungsindex aus heutigen Kapitalisierungen und keine FX-Annahmen.
 
+Konfigurationsvalidierung (#64): Die JSON-Wurzel muss ein Objekt sein;
+`tickers` eine nichtleere Liste nichtleerer Strings. Symbole werden getrimmt
+und großgeschrieben, danach müssen sie eindeutig sein. Zahlen, null, Booleans,
+Objekte oder ein einzelner String werden nicht still zu Symbolen konvertiert.
+`base_date` sowie start/end außerhalb des Demo-Modus sind ISO-Datumsstrings;
+`rebalance_dates` ist eine Liste solcher Strings, `repair` ein Boolean.
+Typ-/Datumsfehler werden vor Providerzugriff als konkrete CLI-Fehler mit
+Exitcode 1 ohne Traceback behandelt. Parserfehler bleiben Exitcode 2.
+Interne `TypeError`/`KeyError` werden nicht als Benutzereingaben verschluckt.
+
 Der reine NumPy-Kern `calculate_index` konsumiert positive bereits konsistent
 adjustierte Preise `(Sitzungen, Assets)`, ISO-Daten und Gewichte. Nichtnegative
 Gewichte müssen innerhalb 1e-12 Rechenrundung zu eins summieren; nur innerhalb

@@ -203,13 +203,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         maturity=args.maturity,
         coupon_rate=args.coupon,
     )
-    examples = build_examples(**parameters)
-    write_examples(examples, args.output)
-    (args.output / "parameters.json").write_text(
-        json.dumps(parameters, indent=2, allow_nan=False) + "\n", encoding="utf-8"
-    )
-    if args.plot:
-        plot_examples(examples, args.output)
+    try:
+        examples = build_examples(**parameters)
+        write_examples(examples, args.output)
+        (args.output / "parameters.json").write_text(
+            json.dumps(parameters, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        )
+        if args.plot:
+            plot_examples(examples, args.output)
+    except (ValueError, OSError, ImportError) as error:
+        parser.exit(1, f"{error}\n")
     print(f"Exported {len(examples)} portfolios to {args.output}")
     return 0
 

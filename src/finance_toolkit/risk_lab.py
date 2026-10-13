@@ -477,10 +477,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=Path("outputs/m2-demo"))
     parser.add_argument("--plot", action="store_true")
     args = parser.parse_args(argv)
-    report = build_risk_lab(seed=args.seed, paths=args.paths, steps=args.steps)
-    write_risk_lab(report, args.output)
-    if args.plot:
-        plot_risk_lab(report, args.output)
+    try:
+        report = build_risk_lab(seed=args.seed, paths=args.paths, steps=args.steps)
+        write_risk_lab(report, args.output)
+        if args.plot:
+            plot_risk_lab(report, args.output)
+    except (ValueError, OSError, ImportError) as error:
+        parser.exit(1, f"{error}\n")
     print(f"Exported M2 Risk Lab to {args.output}")
     return 0
 
