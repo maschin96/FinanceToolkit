@@ -150,3 +150,21 @@ Barausgleich erhält unabhängig vom Payoff ein Ereignisflag und null
 Taylor-Komponenten; die tatsächliche Bewegung bleibt im Ereignisrest.
 Keine Aufweitung der Toleranz, Änderung der Finanzierungsintervalle oder
 zusätzliche Auszahlung.
+
+## ADR-013 – Endliche Ergebnisverträge und Nettoaggregation (2026-10-13, #60)
+
+Attributionen, Strategie-Payoffs, Gesamtvermögen, Gewichte und Vergleichs-
+kennzahlen liefern endliche Ergebnisse oder konkrete `ValueError`. NumPy-
+und Python-Überläufe werden an diesen Berechnungsgrenzen übersetzt; stille
+inf/nan-Ergebnisse sind nicht gültig. Keine wirtschaftlichen Parameterlimits,
+Aufweitung fachlicher Toleranzen oder Ablehnung gewöhnlicher negativer Vermögen.
+Nicht darstellbare Einzelkomponenten können konservativ abgelehnt werden,
+selbst wenn ihre ideale mathematische Nettosumme endlich wäre.
+
+Für Vermögen werden Cash und signed Positionen gemeinsam betrachtet. Bei
+Überlauf der gewöhnlichen Summe werden nur betroffene Ergebnisse exakt mit
+`fractions.Fraction` summiert und einmal in Float64 konvertiert. Unbetroffene
+Ergebnisse behalten ihre bisherige Rundung. Reine Skalierung wäre unzureichend:
+kleine Reste können beim Teilen durch große Bruttowerte verschwinden. Der
+Fallback ist eine Korrektheitsmaßnahme für Extremfälle; Performancearbeit
+und wiederholte Vermögensberechnung bleiben gesondert in #65.

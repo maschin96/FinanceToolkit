@@ -39,3 +39,23 @@ Cashflows (atol 1e-10 bei Beträgen bis 1000). Deterministische Optionsneubewert
 prüft sinkende Restlaufzeit mit diskontiertem Strike (atol 1e-11).
 Keine doppelte Zahlung nach Verfall, kein Coupon an Käufer am Zahlungstermin.
 Keine Steuer-, FX-, Margin- oder Broker-Engine und keine Marktvalidierung.
+
+## Endliches Nettovermögen (#60)
+
+`PortfolioPaths.wealth` und `BookPaths.wealth` liefern endliche Float64-Werte
+in der gemeinsamen Währung oder `ValueError`. Die gewöhnliche NumPy-Summe
+mit Cash bleibt erhalten. Nur bei einem Überlauf wird das betreffende
+Pfad-/Zeit-Ergebnis aus den exakten rationalen Darstellungen der endlichen
+Float64-Terme summiert und einmal zurück in Float64 gerundet. So bleibt
+z.B. 1e308+1e308-1e308=1e308 darstellbar; ebenso überlebt ein kleiner Rest
+bei exakt gegenläufigen großen Positionen. Der seltene Fallback verwendet
+`fractions.Fraction` aus der Standardbibliothek, keine neue Abhängigkeit und
+keinen plattformabhängigen erweiterten Float-Typ. Ein tatsächlich zu großer
+Netto-Endwert bleibt ein Fehler. Nichtendliche Eingangsterme werden abgelehnt.
+Normale negative Vermögen bleiben gültig; Gewichte benötigen weiterhin
+positives Vermögen und zusätzlich darstellbare dimensionslose Quotienten.
+
+Regressionen rekonstruieren große signed Nettosummen mit 2e-15 relativer
+Float64-Rundungstoleranz und null absoluter Toleranz. Bei exakt aufgehobenen
+Gegenpositionen wird der unveränderte kleine Rest exakt geprüft; normale
+Bilanz- und Instrumenttests behalten ihre bisherigen Währungstoleranzen.

@@ -45,3 +45,14 @@ den einmaligen Barausgleich; Vermögen und Intervallbilanz verwenden weiterhin
 wertloser Verfall und das Folgeintervall werden mitgeprüft. Außerhalb der
 Zuordnungstoleranz bleiben glatte Bewegungen vor Fälligkeit möglich und
 fehlende Fälligkeitsraster beziehungsweise echte Zeiten nach Fälligkeit Fehler.
+
+## Numerische Ergebnisgrenzen (#60)
+
+Attributionen und ihre Approximation/Reconciliation liefern endliche Float64-
+Währungswerte oder einen konkreten `ValueError`. Nicht darstellbare signed
+Vertragsskalierungen, einzelne Taylor-Komponenten, Restsummen, Intervall-P&L
+und relative Quotienten werden abgelehnt. NumPy-Überläufe und Python-Overflows
+werden in `ValueError` übersetzt; RuntimeWarnings sind kein Ersatz für Fehler.
+Zwischenwerte müssen darstellbar bleiben: Es wird nicht zugesichert, jede
+extreme Kombination trotz überlaufender Einzelkomponenten zu rekonstruieren.
+Es gibt keine wirtschaftlichen Parameterobergrenzen oder Toleranzaufweitung.

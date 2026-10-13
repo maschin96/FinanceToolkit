@@ -22,3 +22,12 @@ Addition der separat gebuchten Cashfinanzierung/Leihekosten. Die Payoff-Grenzen
 sind daher keine garantierten Grenzen des finanzierten Gewinns. Die fünf
 Handreferenzen verwenden Spots unter/auf/zwischen/über Strikes und zwei Verträge;
 M1- und M3-Ledger liefern dieselben Werte (1e-10 Währung absolute Rundungstoleranz).
+
+Ab #60 werden Mengen bereits beim Erzeugen einer `OptionStrategy` auf
+Endlichkeit geprüft. Eine überlaufende Aktienmenge n*m wird für Strategien
+mit Aktienleg abgelehnt; bei reinen Optionsspreads bleiben endliche
+Vertragsmengen zulässig. `payoff` liefert endliche Währungswerte oder einen
+konkreten `ValueError`, wenn ein Leg oder die Summe nicht darstellbar ist.
+Auch ein mathematisch endlicher Netto-Payoff kann wegen überlaufender
+Einzellegs abgelehnt werden. Signed benutzerdefinierte Mengen und Nullmengen
+bleiben zulässig; keine willkürlichen wirtschaftlichen Parameterobergrenzen.

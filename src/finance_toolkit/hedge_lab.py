@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from finance_toolkit import __version__
+from finance_toolkit._numerics import finite_result, numeric_errors
 from finance_toolkit._validation import positive_integer
 from finance_toolkit.analytics import drawdown, tail_risk
 from finance_toolkit.attribution import attribute_book, export_attribution
@@ -44,12 +45,13 @@ class Comparison:
     strategy_metrics: list[dict[str, str | float | None]]
 
 
+@numeric_errors("comparison metrics")
 def _metrics(
     name: str, book: BookPaths, hedge: HedgePaths | None = None
 ) -> dict[str, str | float | None]:
     pnl = book.wealth[:, -1] - book.initial_cash
     risk = tail_risk(-pnl)
-    return {
+    result: dict[str, str | float | None] = {
         "name": name,
         "mean_pnl": float(pnl.mean()),
         "rms_replication_pnl": float(np.sqrt(np.mean(pnl**2))),
@@ -70,6 +72,11 @@ def _metrics(
         if hedge
         else None,
     }
+    finite_result(
+        [value for value in result.values() if isinstance(value, float)],
+        "comparison metrics",
+    )
+    return result
 
 
 def compare_hedges(
