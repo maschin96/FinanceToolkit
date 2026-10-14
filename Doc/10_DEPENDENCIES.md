@@ -78,11 +78,18 @@ Keine neue Abhängigkeit und keine Änderung von Versionslocks, Tokenrechten
 oder Action-Pins. Dies ist Installations-/Adapterverifikation, keine empirische
 Marktvalidierung oder Änderung numerischer Toleranzen.
 
-## Geplantes TUI-Extra für M5 (#74)
+## Optionales TUI-Extra für M5 (#74)
 
-Textual ist als optionale UI-Abhängigkeit für `tui` vorgesehen,
-noch nicht in pyproject.toml/uv.lock aufgenommen. Die
+Textual 8.2.8 ist als optionale UI-Abhängigkeit für `tui` aufgenommen. Die
 [Projektlizenz ist MIT](https://github.com/Textualize/textual/blob/main/LICENSE).
-Vor Aufnahme konkrete Version und direkte/transitive Lizenzmetadaten prüfen;
-Python 3.11–3.13, Basis ohne UI-Imports und TUI ohne plots/yahoo verifizieren.
-Details und Installations-/CI-Abnahme im [M5-Plan](29_M5_TUI_ROADMAP.md).
+Vor Aufnahme wurden Wheel-METADATA einschließlich Python-Anforderungen,
+License-Expression, Classifier und License-File in isolierter Umgebung geprüft
+(2026-10-14). Textual >=3.9,<4 und alle TUI-Transitiven erlauben Python 3.11–3.13.
+Neue Pakete: Textual 8.2.8, Rich 15.0.0, markdown-it-py 4.2.0,
+mdit-py-plugins 0.6.1, mdurl 0.1.2 und linkify-it-py 2.2.0: MIT.
+Bereits gelockte Transitiven: platformdirs 4.12.4 MIT, Pygments 2.21.0
+BSD-2-Clause, typing-extensions 4.16.0 PSF-2.0. Keine syntax-Extras aufgenommen.
+Versionen/Hashes einschließlich Pythonvarianten stehen in uv.lock. Lizenzen
+verbleiben in den Distributionen; kein separates Bündeln der Abhängigkeiten.
+Python-Kompatibilität wird zusätzlich über die aktuelle CI-Matrix geprüft.
+[Verträge und Profil](31_M5_TUI_CONTRACTS.md); vollständige App-Abnahme in #81.

@@ -33,7 +33,7 @@ jobs:
           version: '0.11.23'
           enable-cache: false
       - name: Install locked environment
-        run: uv sync --locked --extra plots --extra yahoo --python '${{ matrix.python-version }}'
+        run: uv sync --locked --all-extras --python '${{ matrix.python-version }}'
       - name: Tests
         run: |
           uv run --no-sync python -m pytest --junitxml=/tmp/finance-full-tests.xml
@@ -68,6 +68,8 @@ jobs:
           cp -R tests /tmp/finance-wheel-tests
           cd /tmp
           /tmp/finance-wheel/bin/python -m pytest finance-wheel-tests
+          /tmp/finance-wheel/bin/python -m finance_toolkit.tui --help
+          /tmp/finance-wheel/bin/finance-toolkit-tui --help
           /tmp/finance-wheel/bin/python -m finance_toolkit.examples --paths 20 --output /tmp/wheel-m1-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.risk_lab --paths 20 --output /tmp/wheel-m2-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.hedge_lab --paths 20 --steps 16 --output /tmp/wheel-m3-hedge --plot
