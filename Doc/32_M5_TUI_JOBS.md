@@ -1,8 +1,9 @@
 # M5 – Navigation und Hintergrundläufe (#75)
 
 Die App bietet sechs per Ctrl+1…6 erreichbare Ansichten: Start, Portfolio,
-Risiko, Strategien, Indizes und Workspace. Fachformulare/Ergebnisse werden in
-#76–#80 ergänzt; sie werden derzeit ausdrücklich als noch ausstehend angezeigt.
+Risiko, Strategien, Indizes und Workspace. Das
+[Portfolioformular](33_M5_TUI_PORTFOLIO.md) ist in #76 ergänzt;
+weitere Fachansichten werden in #77–#80 ergänzt und sind als ausstehend angezeigt.
 Tab/Shift+Tab wechseln den sichtbaren Fokus, Enter aktiviert Buttons.
 F1 öffnet eine scrollbare Hilfe, Escape schließt sie. F2 zeigt die vollständige
 Fehlerdiagnose in einer scrollbaren Ansicht; Escape kehrt zurück.

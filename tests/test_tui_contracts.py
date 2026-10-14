@@ -78,7 +78,9 @@ def test_portfolio_adapter_independent_cash_reference():
     result = run_portfolio(config)
     # Currency values: deterministic GBM, no financing; roundoff <1e-10 EUR.
     expected = 797.0 + 200.0 * np.exp(0.06)
-    np.testing.assert_allclose(result.portfolio.wealth[:, -1], expected, atol=1e-10)
+    np.testing.assert_allclose(
+        result.portfolio.wealth[:, -1], expected, rtol=0, atol=1e-10
+    )
     np.testing.assert_array_equal(result.portfolio.cash, 797.0)
     again = run_portfolio(config)
     np.testing.assert_array_equal(result.market.prices, again.market.prices)

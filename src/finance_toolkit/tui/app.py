@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import replace
-from typing import TYPE_CHECKING
+from dataclasses import asdict
+from typing import TYPE_CHECKING, Any
 
-from finance_toolkit.tui.config import Workspace
+from finance_toolkit.tui.config import (
+    InstrumentConfig,
+    TradeConfig,
+    Workspace,
+    decode_workspace,
+    encode_workspace,
+)
+from finance_toolkit.tui.forms import Field, form_fields, format_field, parse_field
 from finance_toolkit.tui.jobs import Jobs
-from finance_toolkit.tui.services import run_portfolio
+from finance_toolkit.tui.services import PortfolioResult, position_rows, run_portfolio
 
 if TYPE_CHECKING:
     from textual.app import App
@@ -23,12 +30,72 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
     from textual.widgets import (
         Button,
         ContentSwitcher,
+        DataTable,
         Footer,
         Header,
         Input,
         Label,
+        Sparkline,
         Static,
     )
+
+    def form_widgets(config: Any, prefix: str, exclude: set[str]) -> ComposeResult:
+        for field in form_fields(type(config), exclude=exclude):
+            yield Label(field.label)
+            yield Input(
+                format_field(getattr(config, field.name), percent=field.percent),
+                id=f"{prefix}-{field.name}",
+            )
+
+    class TradeEditor(ModalScreen[TradeConfig | None]):
+        BINDINGS = [("escape", "dismiss(None)", "Abbrechen")]
+
+        def __init__(self, workspace: Workspace, trade: TradeConfig) -> None:
+            super().__init__(id="trade-editor")
+            self.workspace = workspace
+            self.trade = trade
+
+        def compose(self) -> ComposeResult:
+            with VerticalScroll():
+                yield Static("Trade: Kauf + / Verkauf −. Beträge in Workspace-Währung.")
+                yield from form_widgets(self.trade, "trade", {"instrument"})
+                yield from form_widgets(self.trade.instrument, "instrument", set())
+                yield Static("", id="trade-error", markup=False)
+                yield Button("Trade übernehmen", id="save-trade")
+                yield Button("Abbrechen", id="cancel-trade")
+
+        def on_input_changed(self, event: Input.Changed) -> None:
+            event.stop()
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            event.stop()
+            if event.button.id == "cancel-trade":
+                self.dismiss(None)
+                return
+            try:
+                payload: dict[str, Any] = {}
+                for cls, prefix, excluded in (
+                    (TradeConfig, "trade", {"instrument"}),
+                    (InstrumentConfig, "instrument", set()),
+                ):
+                    data = {}
+                    for field in form_fields(cls, exclude=excluded):
+                        data[field.name] = parse_field(
+                            self.query_one(f"#{prefix}-{field.name}", Input).value,
+                            field.annotation,
+                            percent=field.percent,
+                        )
+                    if prefix == "trade":
+                        payload.update(data)
+                    else:
+                        payload["instrument"] = data
+                workspace = encode_workspace(self.workspace)
+                workspace["portfolio"]["trades"] = [payload]
+                validated = decode_workspace(workspace).portfolio.trades[0]
+            except ValueError as error:
+                self.query_one("#trade-error", Static).update(str(error))
+            else:
+                self.dismiss(validated)
 
     class Help(ModalScreen[None]):
         BINDINGS = [("escape", "dismiss", "Zurück")]
@@ -44,8 +111,8 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "weiterrechnen; bis zu seinem Ende bleibt ein neuer Lauf\n"
                     "gesperrt.\n"
                     "Keine Prozentanzeige ohne messbaren Fortschritt.\n\n"
-                    "Navigation und Jobs sind verfügbar; Fachformulare folgen\n"
-                    "in den Paketen C–G. Escape schließt diese Hilfe.",
+                    "Portfolioformulare sind verfügbar; weitere Fachansichten\n"
+                    "folgen in D–G. Escape schließt diese Hilfe.",
                     markup=False,
                 )
                 yield Button("Zurück", id="close-help")
@@ -62,10 +129,12 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
         VerticalScroll { padding: 1; }
         Button { margin: 1 0; }
         Button:focus { border: heavy $accent; }
-        Help, Diagnostics { align: center middle; }
-        Help > VerticalScroll, Diagnostics > VerticalScroll {
+        Help, Diagnostics, TradeEditor { align: center middle; }
+        ModalScreen > VerticalScroll {
             width: 90%; height: 85%; background: $panel;
         }
+        DataTable { height: 12; }
+        Sparkline { height: 3; }
         """
         BINDINGS = [
             ("ctrl+1", "page('start')", "Start"),
@@ -88,6 +157,12 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             self.input_error = ""
             self.ready = False
             self.status_view = Static("idle – bereit", id="status", markup=False)
+            self.draft = encode_workspace(self.workspace)
+            self.field_errors: dict[str, str] = {}
+            self.schema_error = ""
+            self.field_map: dict[str, tuple[str, Field]] = {}
+            self.selected_path = self.selected_time = 0
+            self.rendered_run = 0
 
         def compose(self) -> ComposeResult:
             yield Header()
@@ -105,8 +180,46 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     yield Button("Offline-Demo rechnen (Ctrl+R)", id="run")
                     yield Button("Hilfe (F1)", id="help-button")
                     yield Button("Beenden (Ctrl+Q)", id="quit-button")
+                with VerticalScroll(id="portfolio"):
+                    yield Label("Gemeinsame Währung (drei Großbuchstaben, kein FX)")
+                    yield Input(self.workspace.currency, id="currency")
+                    yield Static(
+                        "GBM: Seed in Startansicht; Vektoren in Assetreihenfolge."
+                    )
+                    for section, config, excluded in (
+                        ("simulation", self.workspace.simulation, {"seed"}),
+                        ("portfolio", self.workspace.portfolio, {"trades"}),
+                    ):
+                        for field in form_fields(type(config), exclude=excluded):
+                            self.field_map[f"{section}-{field.name}"] = (section, field)
+                        yield from form_widgets(config, section, excluded)
+                    yield Static(
+                        "Leere Quote=Modellpreis. Shorts/Kredit im statischen "
+                        "Buch erlaubt; keine Margin."
+                    )
+                    yield DataTable(id="trades", cursor_type="row")
+                    yield Button("Trade hinzufügen", id="add-trade")
+                    yield Button("Ausgewählten Trade ändern", id="edit-trade")
+                    yield Button("Ausgewählten Trade löschen", id="delete-trade")
+                    yield Button("Portfolio rechnen (Ctrl+R)", id="run-portfolio")
+                    yield Label("Ergebnispfad (ab 0; reine Anzeigeauswahl)")
+                    yield Input("0", id="view-path")
+                    yield Label("Ergebniszeitindex (ab 0; reine Anzeigeauswahl)")
+                    yield Input("0", id="view-time")
+                    yield Static(
+                        "Noch kein Ergebnis", id="portfolio-summary", markup=False
+                    )
+                    yield Static(
+                        "Gewählter Pfad: Vermögen (Währung), Zeit 0 bis Horizont"
+                    )
+                    yield Sparkline([], id="wealth-line")
+                    yield DataTable(id="positions")
+                    yield Static(
+                        "Verlauf: höchstens 50 Zeitpunkte ab Auswahl. "
+                        "Vollständige Arrays bleiben im Ergebnis."
+                    )
+                    yield DataTable(id="wealth-table")
                 for page, label, issue in (
-                    ("portfolio", "Simulation / Portfolio", 76),
                     ("risk", "Risiko / Stress", 77),
                     ("strategy", "Strategien / Hedging", 78),
                     ("index", "Indizes / Daten", 79),
@@ -126,6 +239,7 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             self.set_interval(0.05, self.poll_jobs)
             self.query_one("#run", Button).focus()
             self.check_size()
+            self.refresh_trades()
 
         def on_resize(self, event: Resize) -> None:
             if self.ready:
@@ -140,8 +254,8 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
 
         def action_page(self, page: str) -> None:
             self.query_one("#pages", ContentSwitcher).current = page
-            button = self.query_one(f"#{page}").query(Button).first()
-            button.focus()
+            focus = self.query_one(f"#{page}").query("Input, Button, DataTable").first()
+            focus.focus()
 
         def action_help(self) -> None:
             self.push_screen(Help(id="help"))
@@ -159,6 +273,12 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             except ValueError as error:
                 self.status_view.update(str(error))
             else:
+                self.query_one("#portfolio-summary", Static).update(
+                    f"Lauf {self.jobs.run_id} gestartet – noch kein aktuelles Ergebnis."
+                )
+                for selector in ("#positions", "#wealth-table"):
+                    self.query_one(selector, DataTable).clear()
+                self.query_one("#wealth-line", Sparkline).data = []
                 self.poll_jobs()
 
         def action_cancel(self) -> None:
@@ -178,25 +298,207 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             if self.input_error:
                 message += "\nEingabe: " + self.input_error
             self.status_view.update(message)
+            if self.jobs.state == "succeeded" and self.rendered_run != self.jobs.run_id:
+                self.rendered_run = self.jobs.run_id
+                self.render_portfolio()
 
         def on_input_changed(self, event: Input.Changed) -> None:
+            key = event.input.id or ""
+            if key in ("view-path", "view-time"):
+                try:
+                    value = int(event.value)
+                    if key == "view-path":
+                        self.selected_path = value
+                    else:
+                        self.selected_time = value
+                    self.render_portfolio()
+                except ValueError as error:
+                    self.query_one("#portfolio-summary", Static).update(str(error))
+                return
+            if key not in self.field_map and key not in ("seed", "currency"):
+                return
+            if key in self.field_map:
+                section, field = self.field_map[key]
+                if key not in self.field_errors and event.value == format_field(
+                    self.draft[section][field.name], percent=field.percent
+                ):
+                    return
             self.jobs.changed()
             try:
-                seed = int(event.value)
-                self.workspace = replace(
-                    self.workspace,
-                    simulation=replace(self.workspace.simulation, seed=seed),
-                )
-            except ValueError:
-                self.input_error = "Seed muss eine nichtnegative ganze Zahl sein."
+                if key == "seed":
+                    self.draft["simulation"]["seed"] = parse_field(event.value, int)
+                elif key == "currency":
+                    self.draft["currency"] = event.value
+                else:
+                    section, field = self.field_map[key]
+                    self.draft[section][field.name] = parse_field(
+                        event.value, field.annotation, percent=field.percent
+                    )
+            except ValueError as error:
+                self.field_errors[key] = str(error)
             else:
-                self.input_error = ""
+                self.field_errors.pop(key, None)
+            try:
+                self.workspace = decode_workspace(self.draft)
+            except ValueError as error:
+                self.schema_error = str(error)
+            else:
+                self.schema_error = ""
+            self.input_error = "; ".join(
+                [f"{k.capitalize()}: {v}" for k, v in self.field_errors.items()]
+                + ([self.schema_error] if self.schema_error else [])
+            )
             if self.ready:
                 self.poll_jobs()
 
+        def refresh_trades(self) -> None:
+            table = self.query_one("#trades", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Nr.", "Zeit (Jahre)", "Instrument", "Menge", "Quote", "Gebühr"
+            )
+            for index, trade in enumerate(self.workspace.portfolio.trades):
+                table.add_row(
+                    str(index),
+                    str(trade.time),
+                    trade.instrument.kind,
+                    str(trade.quantity),
+                    str(trade.price),
+                    str(trade.fee),
+                )
+
+        def edit_trade(self, *, add: bool) -> None:
+            if self.input_error:
+                self.status_view.update(self.input_error)
+                return
+            index = self.query_one("#trades", DataTable).cursor_row
+            trades = self.workspace.portfolio.trades
+            if not add and not trades:
+                self.status_view.update("Kein Trade ausgewählt.")
+                return
+
+            def saved(trade: TradeConfig | None) -> None:
+                if trade is None:
+                    return
+                data = self.draft["portfolio"]["trades"]
+                if add:
+                    data.append(asdict(trade))
+                else:
+                    data[index] = asdict(trade)
+                self.workspace = decode_workspace(self.draft)
+                self.jobs.changed()
+                self.refresh_trades()
+                self.query_one("#trades", DataTable).move_cursor(
+                    row=len(data) - 1 if add else index
+                )
+                self.poll_jobs()
+
+            self.push_screen(
+                TradeEditor(self.workspace, TradeConfig() if add else trades[index]),
+                saved,
+            )
+
+        def render_portfolio(self) -> None:
+            result = self.jobs.result
+            if not isinstance(result, PortfolioResult):
+                return
+            path, step = self.selected_path, self.selected_time
+            try:
+                rows = position_rows(result, path, step)
+            except ValueError as error:
+                self.query_one("#portfolio-summary", Static).update(str(error))
+                return
+            currency = result.config.currency
+            analysis = result.analysis
+            relative = (
+                "Rendite undefiniert: Anfangskapital ≤0"
+                if analysis.returns is None
+                else f"Rendite {analysis.returns[path, step]:.6%}"
+            )
+            drawdown = (
+                "Drawdown undefiniert: nichtpositives Vermögen"
+                if analysis.drawdowns is None
+                else f"Drawdown {analysis.drawdowns[path, step]:.6%}"
+            )
+            self.query_one("#portfolio-summary", Static).update(
+                f"Lauf {self.jobs.run_id}; Pfad {path}, "
+                f"Zeit {result.market.times[step]:.6g} Jahre; {currency}\n"
+                f"Cash {result.portfolio.cash[path, step]:.8g}; "
+                f"Vermögen {analysis.wealth[path, step]:.8g}; "
+                f"P&L {analysis.pnl[path, step]:.8g}\n"
+                f"{relative}; {drawdown}\n"
+                "Alle Pfade: mittleres Endvermögen "
+                f"{analysis.wealth[:, -1].mean():.8g} {currency}\n"
+                f"Aggregierter terminaler VaR {analysis.risk.confidence:.1%}: "
+                f"{analysis.risk.value_at_risk:.8g}; "
+                f"ES {analysis.risk.expected_shortfall:.8g} {currency}"
+            )
+            positions = self.query_one("#positions", DataTable)
+            positions.clear(columns=True)
+            positions.add_columns(
+                "Instrument",
+                "Menge",
+                f"Quote ({currency}/Einheit)",
+                f"Wert ({currency})",
+                "Dirty",
+                "Clean",
+                "Stückzins",
+            )
+            for row in rows:
+                positions.add_row(
+                    *(
+                        str(row.get(key, "—"))
+                        for key in (
+                            "instrument",
+                            "quantity",
+                            "quote",
+                            "value",
+                            "dirty",
+                            "clean",
+                            "accrued",
+                        )
+                    )
+                )
+            self.query_one("#wealth-line", Sparkline).data = analysis.wealth[
+                path, :: max(1, len(result.market.times) // 80)
+            ].tolist()
+            table = self.query_one("#wealth-table", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Zeit (Jahre)",
+                f"Cash ({currency})",
+                f"Vermögen ({currency})",
+                f"P&L ({currency})",
+            )
+            for i in range(step, min(step + 50, len(result.market.times))):
+                table.add_row(
+                    *(
+                        str(x)
+                        for x in (
+                            result.market.times[i],
+                            result.portfolio.cash[path, i],
+                            analysis.wealth[path, i],
+                            analysis.pnl[path, i],
+                        )
+                    )
+                )
+
         async def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id == "run":
+            if event.button.id in ("run", "run-portfolio"):
                 self.action_calculate()
+            elif event.button.id in ("add-trade", "edit-trade"):
+                self.edit_trade(add=event.button.id == "add-trade")
+            elif event.button.id == "delete-trade":
+                if self.input_error:
+                    self.status_view.update(self.input_error)
+                    return
+                if self.workspace.portfolio.trades:
+                    index = self.query_one("#trades", DataTable).cursor_row
+                    del self.draft["portfolio"]["trades"][index]
+                    self.workspace = decode_workspace(self.draft)
+                    self.jobs.changed()
+                    self.refresh_trades()
+                    self.poll_jobs()
             elif event.button.id == "help-button":
                 self.action_help()
             elif event.button.id == "quit-button":
