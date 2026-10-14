@@ -75,7 +75,7 @@ Hedges vergleichen sowie eigene Indizes und reproduzierbare Exporte bedienen.
 [M5-Plan und Abnahmekriterien](Doc/29_M5_TUI_ROADMAP.md) ·
 [GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
 Ziel v0.4.0; M4/v0.3.1 ist abgeschlossen. Die vollständigen Bedienabläufe
-folgen in #75–#80. Paket A stellt bereits das
+folgen in #76–#80. Pakete A/B stellen bereits das
 optionale Extra `tui`, eine startbare Terminalhülle und
 [typisierte Konfigurations-/Adapterverträge](Doc/31_M5_TUI_CONTRACTS.md) bereit:
 
@@ -84,8 +84,10 @@ uv sync --locked --extra tui
 uv run --no-sync finance-toolkit-tui
 ```
 
-Alternativ: `python -m finance_toolkit.tui`. Die Hülle lässt sich mit `q` beenden;
-sie ist noch kein vollständiges TUI-Release.
+Alternativ: `python -m finance_toolkit.tui`. Ctrl+1…6 wählt Ansichten,
+Ctrl+R rechnet die Offline-Demo, Escape bricht ab, F1 zeigt Hilfe,
+F2 Fehlerdiagnosen und Ctrl+Q beendet. Navigation/Hintergrundjobs sind vorhanden;
+Fachformulare und vollständige Ergebnisansichten folgen in #76–#80.
 
 ## Eigene Portfolios
 
