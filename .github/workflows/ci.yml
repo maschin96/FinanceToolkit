@@ -96,16 +96,65 @@ jobs:
         run: |
           uv run --no-sync python - <<'PY'
           from importlib.util import find_spec
-          for module in ('matplotlib', 'pandas', 'yfinance'):
+          for module in ('matplotlib', 'pandas', 'yfinance', 'textual'):
               assert find_spec(module) is None, f'Unexpected optional dependency: {module}'
           PY
       - name: Numerical suite and guarded offline CLIs
         run: uv run --no-sync python -m pytest --junitxml=/tmp/finance-core-tests.xml
-      - name: Verify only the six optional diagram tests were skipped
+      - name: Verify only named optional UI and diagram tests were skipped
         run: |
           uv run --no-sync python - <<'PY'
           from xml.etree import ElementTree
           report = ElementTree.parse('/tmp/finance-core-tests.xml')
+          skipped = [case.get('name') for case in report.findall('.//testcase')
+                     if case.find('skipped') is not None]
+          expected = {
+              'test_optional_plot_adapter_outputs_png',
+              'test_optional_plot_uses_same_results',
+              'test_optional_index_plot',
+              'test_optional_charts',
+              'test_heatmap_contains_numerical_grid',
+              'test_heatmap_does_not_change_global_backend',
+              'test_keyboard_navigation_help_and_resize[size0]',
+              'test_keyboard_navigation_help_and_resize[size1]',
+              'test_ui_remains_responsive_and_cancelled_result_is_not_published',
+              'test_ui_invalid_edit_stale_results_and_failure_diagnostics',
+              'test_ui_quit_during_active_worker',
+          }
+          assert len(skipped) == len(expected) and set(skipped) == expected, skipped
+          PY
+
+  tui:
+    name: TUI profile (Python 3.13, no plots/yahoo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: false
+      - name: Install locked TUI without plots or yahoo
+        run: uv sync --locked --extra tui
+      - name: Verify optional data and plot dependencies are absent
+        run: |
+          uv run --no-sync python - <<'PY'
+          from importlib.util import find_spec
+          assert find_spec('textual') is not None
+          for name in ('matplotlib', 'pandas', 'yfinance'):
+              assert find_spec(name) is None, name
+          PY
+      - name: Test numerical and headless UI behavior
+        run: |
+          uv run --no-sync python -m pytest --junitxml=/tmp/finance-tui-tests.xml
+          uv run --no-sync python - <<'PY'
+          from xml.etree import ElementTree
+          report = ElementTree.parse('/tmp/finance-tui-tests.xml')
           skipped = [case.get('name') for case in report.findall('.//testcase')
                      if case.find('skipped') is not None]
           expected = {

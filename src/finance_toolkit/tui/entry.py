@@ -18,17 +18,6 @@ def main() -> None:
             file=sys.stderr,
         )
         raise SystemExit(2) from None
-    # App navigation and workers follow in #75. This initial shell verifies
-    # real module/console starts without pulling UI imports into core modules.
-    from textual.app import App, ComposeResult
-    from textual.widgets import Footer, Header, Static
+    from finance_toolkit.tui.app import create_app
 
-    class ContractApp(App[None]):
-        BINDINGS = [("q", "quit", "Beenden")]
-
-        def compose(self) -> ComposeResult:
-            yield Header()
-            yield Static("FinanceToolkit – M5: Navigation folgt in Paket B (#75).")
-            yield Footer()
-
-    ContractApp().run()
+    create_app().run()
