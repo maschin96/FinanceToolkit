@@ -120,6 +120,8 @@ jobs:
               'test_ui_remains_responsive_and_cancelled_result_is_not_published',
               'test_ui_invalid_edit_stale_results_and_failure_diagnostics',
               'test_ui_quit_during_active_worker',
+              'test_keyboard_edit_run_select_and_trade_crud',
+              'test_invalid_form_edit_remains_blocking_until_corrected',
           }
           assert len(skipped) == len(expected) and set(skipped) == expected, skipped
           PY

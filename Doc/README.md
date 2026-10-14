@@ -5,6 +5,7 @@
 - [M5 – Textual-TUI: Planung, Arbeitspakete und Abnahme](29_M5_TUI_ROADMAP.md)
 - [M5 – TUI-Verträge und optionales Installationsprofil](31_M5_TUI_CONTRACTS.md)
 - [M5 – Navigation und Hintergrundläufe](32_M5_TUI_JOBS.md)
+- [M5 – Simulation und Portfolio bedienen](33_M5_TUI_PORTFOLIO.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
 - [M2 – Risk Lab](19_RISK_LAB.md)
 - [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)
