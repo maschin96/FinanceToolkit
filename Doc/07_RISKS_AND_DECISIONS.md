@@ -221,3 +221,18 @@ laufenden Thread-Kernaufruf jedoch nicht zwingend sofort. Begrenzte Jobs,
 vollständige Exportwerte und versionierte Konfigurationen sind Pflicht.
 Diese Architektur ist geplant, noch nicht implementiert; M4/v0.3.1 muss vor
 Arbeitsbeginn vollständig abgeschlossen und stabil in main sein.
+
+## ADR – M5-Paket A: Konfiguration und Einstieg (2026-10-14, #74)
+
+M4/v0.3.1 ist abgeschlossen (#66); Planung ist durch #82 integriert. M5 beginnt
+auf codex/milestone-m5 vom stabilen main. Textual 8.2.8 wird nach Prüfung der
+Python-/Lizenzmetadaten als exakt gelocktes optionales Extra aufgenommen.
+Der Kern bleibt ohne Textual-Import. Prozentumrechnung erfolgt nur an explizit
+beschrifteten Formgrenzen, persistierte Konfigurationen enthalten Dezimalwerte.
+
+Schema v1 verwendet eingefrorene Dataclasses und Tupel, unbekannte Felder und
+Typen werden abgelehnt. Der erste Service erstellt einen eigenen Snapshot und
+nutzt öffentliche Kern-APIs. Preiszellen sind im UI auf 5 Millionen begrenzt,
+ohne Laufzeitgarantie; Kern-APIs bleiben unverändert. Vollständige
+[Verträge und Standards](31_M5_TUI_CONTRACTS.md). Navigation/Jobs und alle
+weiteren Bedienabläufe folgen in #75–#80, keine vollständige UI-Freigabe.

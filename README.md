@@ -74,8 +74,18 @@ Simulation und Portfolios konfigurieren, Risiken/Stress prüfen, Strategien und
 Hedges vergleichen sowie eigene Indizes und reproduzierbare Exporte bedienen.
 [M5-Plan und Abnahmekriterien](Doc/29_M5_TUI_ROADMAP.md) ·
 [GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
-Ziel v0.4.0; Umsetzung erst nach vollständigem M4/v0.3.1-Abschluss. Die TUI und
-das Installations-Extra `tui` sind noch nicht verfügbar.
+Ziel v0.4.0; M4/v0.3.1 ist abgeschlossen. Die vollständigen Bedienabläufe
+folgen in #75–#80. Paket A stellt bereits das
+optionale Extra `tui`, eine startbare Terminalhülle und
+[typisierte Konfigurations-/Adapterverträge](Doc/31_M5_TUI_CONTRACTS.md) bereit:
+
+```sh
+uv sync --locked --extra tui
+uv run --no-sync finance-toolkit-tui
+```
+
+Alternativ: `python -m finance_toolkit.tui`. Die Hülle lässt sich mit `q` beenden;
+sie ist noch kein vollständiges TUI-Release.
 
 ## Eigene Portfolios
 
