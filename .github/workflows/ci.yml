@@ -123,6 +123,7 @@ jobs:
               'test_keyboard_edit_run_select_and_trade_crud',
               'test_invalid_form_edit_remains_blocking_until_corrected',
               'test_headless_risk_form_snapshot_and_terminal_grid',
+              'test_headless_strategy_and_hedge_controls',
           }
           assert len(skipped) == len(expected) and set(skipped) == expected, skipped
           PY

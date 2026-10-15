@@ -28,16 +28,10 @@ class PortfolioResult:
     analysis: PortfolioAnalysis
 
 
-def run_portfolio(workspace: Workspace) -> PortfolioResult:
-    """Copy/validate inputs, simulate and value once; propagate concrete errors.
-
-    ValueError is an expected input/model-domain error. Other exceptions remain
-    diagnostic programming/infrastructure failures. No filesystem/network I/O.
-    Core enforces event-grid matching; the adapter never shifts a payment.
-    """
+def simulate_market(workspace: Workspace) -> tuple[Workspace, GBMPaths]:
+    """Validate/copy inputs and generate one owned market for all comparisons."""
     snapshot = decode_workspace(encode_workspace(workspace))
     simulation = snapshot.simulation
-    portfolio = snapshot.portfolio
     market = simulate_gbm(
         simulation.spots,
         drift=simulation.drifts,
@@ -48,6 +42,17 @@ def run_portfolio(workspace: Workspace) -> PortfolioResult:
         correlation=simulation.correlation,
         seed=simulation.seed,
     )
+    return snapshot, market
+
+
+def run_portfolio(workspace: Workspace) -> PortfolioResult:
+    """Copy/validate and value via public APIs; propagate concrete domain errors.
+
+    No filesystem/network I/O. Core enforces event-grid matching; the adapter
+    never shifts a payment. Unexpected exceptions retain their diagnostics.
+    """
+    snapshot, market = simulate_market(workspace)
+    portfolio = snapshot.portfolio
     book = value_portfolio(
         market,
         tuple(trade.build() for trade in portfolio.trades),

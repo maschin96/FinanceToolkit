@@ -36,7 +36,25 @@ PERCENT_FIELDS = {
     "grid_volatility_shocks",
 }
 LABELS = {
-    "name": "Szenarioname",
+    "enabled": "Hedgevergleich aktivieren (ja/nein; benötigt Freigaben)",
+    "case_names": "Hedge-Fallnamen (Komma-Liste; Buchstaben/Zahlen/_/-)",
+    "strides": "Hedge-Raster-Strides (ganze Teiler der Zeitschritte)",
+    "calendar_every": "Hedgekalender: alle n Rasterpunkte (leer=kein Kalender)",
+    "threshold": "Schwelle: Rebalancing Gewichtsanteil / Hedge Aktien (leer=aus)",
+    "weights": "Zielgewichte (Dezimalanteile, Komma-Liste; Summe ≤1)",
+    "calendar": "Rebalancing-Signalzeiten (Jahre, Komma-Liste; leer=aus)",
+    "fixed_fee": "Fixe Gebühr pro Ausführung (Währung)",
+    "proportional_fee": "Proportionale Ausführungskosten (%)",
+    "stock_borrow_rate": "Aktienleihsatz (% pro Jahr)",
+    "allow_short": "Aktien-Shorts ausdrücklich erlauben (ja/nein)",
+    "allow_borrowing": "Cashkredit ausdrücklich erlauben (ja/nein)",
+    "option_quantity": "Opening-Optionsverträge (+ Long / − Short)",
+    "option_strategy": (
+        "Optionsstrategie: protective_put/covered_call/collar/bull_call/bear_put"
+    ),
+    "upper_strike": "Oberer Strike (Währung pro Underlying)",
+    "name": "Name (Szenario/Hedgefall)",
+    "stride": "Raster-Stride (ganzer Teiler der Zeitschritte)",
     "path": "Snapshotpfad (ab 0)",
     "time_index": "Snapshotzeitindex (ab 0; nach Ereignissen)",
     "confidence": "VaR-/ES-Konfidenz (%)",

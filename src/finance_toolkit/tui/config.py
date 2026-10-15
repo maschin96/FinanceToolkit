@@ -198,6 +198,19 @@ class StrategyConfig:
     allow_short: bool = False
     allow_borrowing: bool = False
     orders: tuple[TradeConfig, ...] = ()
+    stock_borrow_rate: float = 0.0
+
+
+@dataclass(frozen=True)
+class HedgeCaseConfig:
+    """One comparison variant; optional cases replace shared stride settings."""
+
+    name: str = "case"
+    stride: int = 1
+    calendar_every: int | None = None
+    threshold: float | None = None
+    fixed_fee: float = 0.0
+    proportional_fee: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -205,6 +218,9 @@ class HedgeConfig:
     """Fine/coarse base-grid cases with explicit execution and funding rules."""
 
     option: InstrumentConfig = InstrumentConfig(kind="call", multiplier=1.0)
+    enabled: bool = False
+    case_names: tuple[str, ...] = ("fine", "coarse")
+    cases: tuple[HedgeCaseConfig, ...] = ()
     option_quantity: float = -1.0
     strides: tuple[int, ...] = (1, 2)
     calendar_every: int | None = None

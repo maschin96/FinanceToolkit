@@ -7,6 +7,7 @@
 - [M5 – Navigation und Hintergrundläufe](32_M5_TUI_JOBS.md)
 - [M5 – Simulation und Portfolio bedienen](33_M5_TUI_PORTFOLIO.md)
 - [M5 – Risiko und Stress](34_M5_TUI_RISK.md)
+- [M5 – Strategien, Hedging und Attribution](35_M5_TUI_STRATEGIES.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
 - [M2 – Risk Lab](19_RISK_LAB.md)
 - [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)
