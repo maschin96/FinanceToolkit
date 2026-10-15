@@ -101,3 +101,15 @@ Terminaltabellen begrenzt angezeigt.
 [Release-Prozess](09_RELEASE_PROCESS.md), [Architekturentscheidungen](07_RISKS_AND_DECISIONS.md),
 [Abhängigkeiten/Lizenzen](10_DEPENDENCIES.md). Ein lokaler oder integrierter
 Vorbereitungscommit erfüllt den vollständigen Releaseauftrag noch nicht.
+
+
+## Nachtrag: manueller Navigationsbefund (#95)
+
+Der Nutzer meldet fehlende Ctrl+1…6-Navigation im macOS-Terminal. Die
+[Korrektur](40_M5_TUI_NAVIGATION.md) ergänzt eine sichtbare, mit Tab/Pfeiltasten
+bedienbare Menüleiste und F3…F8. Zwei neue UI-Regressionsfälle erhöhen den
+Vollumfang auf 497 Tests; Kern 476 bestanden/21 benannte Skips, TUI 490
+bestanden/sieben Diagramm-Skips. Die beiden realen POSIX-Starttests prüfen nun
+auch F3…F8 für jede Seite. Dies ersetzt keine manuelle Wiederholungsprüfung;
+alle vier Abnahmezeilen bleiben offen. Die Tabelle oben dokumentiert den
+vorherigen H-Vorbereitungsstand mit 495 Tests.

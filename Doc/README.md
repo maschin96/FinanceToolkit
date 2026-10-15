@@ -12,6 +12,7 @@
 - [M5 – Workspaces und reproduzierbare Exporte](37_M5_TUI_WORKSPACES.md)
 - [M5 – Gesamtverifikation und Freigabestand](38_M5_TUI_VERIFICATION.md)
 - [M5 – Manuelle Terminalprüfung](39_M5_MANUAL_SMOKE.md)
+- [M5 – Korrektur der Terminalnavigation](40_M5_TUI_NAVIGATION.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
 - [M2 – Risk Lab](19_RISK_LAB.md)
 - [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)

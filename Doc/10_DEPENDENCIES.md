@@ -109,3 +109,8 @@ führt außerhalb des Quellbaums dieselben Tests sowie alle alten Offline-CLIs a
 Textual bleibt lazy; numerische Workspaces/Exporte benötigen es nicht.
 Lizenzangaben des Abschnitts oben wurden am 2026-10-15 erneut mit installierter
 Paket-METADATA abgeglichen; keine zusätzlichen Abhängigkeiten in H.
+
+
+Nach der Navigationskorrektur #95: Vollprofil 497 Tests ohne Auslassung,
+Kern 476 Tests mit 21 benannten Skips (14 UI-/sieben Diagrammtests),
+TUI 490 Tests mit sieben Diagramm-Skips. Keine neuen Abhängigkeiten.

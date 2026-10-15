@@ -10,6 +10,8 @@
   vollständige P&L-Attribution (#78).
 - Synthetische Indexdemo, Cache-Replay, Datenvorschau und ausschließlich
   ausdrücklich ausgelöste Yahoo-Abrufe (#79).
+- Sichtbare Menüleiste mit Tab/Pfeiltasten und F3–F8 statt Abhängigkeit von
+  Ctrl+Ziffer-Tastensequenzen (#95).
 - Versionierte Konfigurationen, exakte CSV/JSON-Exporte mit Parametern, Einheiten,
   Versionen/Hashes, Überschreibschutz und Abbruch-/Fehlerbehandlung (#80).
 - Voll-, Kern- und TUI-Installationsprofile mit expliziten Skiplisten und

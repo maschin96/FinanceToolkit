@@ -1,9 +1,9 @@
 # M5 – Simulation und Portfolio bedienen (#76)
 
-Ctrl+2 öffnet das scrollbare Simulations-/Portfolioformular. Tab/Shift+Tab und
+F4 öffnet das scrollbare Simulations-/Portfolioformular. Tab/Shift+Tab und
 Enter reichen für Felder, Tradeauswahl und Buttons aus; Tabellen unterstützen
 Pfeiltasten und horizontales Scrollen. Der Seed steht in der Startansicht
-(Ctrl+1). Ctrl+R rechnet mit einem eigenen Snapshot im Hintergrund.
+(F3). Ctrl+R rechnet mit einem eigenen Snapshot im Hintergrund.
 
 ## Eingaben
 
