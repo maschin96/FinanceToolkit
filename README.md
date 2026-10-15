@@ -75,7 +75,7 @@ Hedges vergleichen sowie eigene Indizes und reproduzierbare Exporte bedienen.
 [M5-Plan und Abnahmekriterien](Doc/29_M5_TUI_ROADMAP.md) ·
 [GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
 Ziel v0.4.0; M4/v0.3.1 ist abgeschlossen. Die vollständigen Bedienabläufe
-folgen in #77–#80. Pakete A–C stellen bereits das
+folgen in #78–#80. Pakete A–D stellen bereits das
 optionale Extra `tui`, eine startbare Terminalhülle und
 [typisierte Konfigurations-/Adapterverträge](Doc/31_M5_TUI_CONTRACTS.md) bereit:
 
@@ -89,7 +89,9 @@ Ctrl+R rechnet die Offline-Demo, Escape bricht ab, F1 zeigt Hilfe,
 F2 Fehlerdiagnosen und Ctrl+Q beendet. Navigation/Hintergrundjobs sind vorhanden;
 Die [Portfolioansicht](Doc/33_M5_TUI_PORTFOLIO.md) bietet GBM-/Finanzierungsfelder,
 editierbare Aktien-/Options-/Anleihentrades und Vermögens-/Positionsansichten
-mit Pfad-/Zeitwahl. Risiko, Strategien, Indizes und Dateiexporte folgen in #77–#80.
+mit Pfad-/Zeitwahl. [Risiko/Stress](Doc/34_M5_TUI_RISK.md) ergänzt explizite
+Snapshots, Greeks/DV01 und benannte Schocks mit terminalem Stressraster.
+Strategien, Indizes und Dateiexporte folgen in #78–#80.
 
 ## Eigene Portfolios
 
