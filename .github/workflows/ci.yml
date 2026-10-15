@@ -124,6 +124,8 @@ jobs:
               'test_invalid_form_edit_remains_blocking_until_corrected',
               'test_headless_risk_form_snapshot_and_terminal_grid',
               'test_headless_strategy_and_hedge_controls',
+              'test_headless_offline_data_preview_and_index',
+              'test_headless_online_action_and_cache_miss_remain_explicit',
           }
           assert len(skipped) == len(expected) and set(skipped) == expected, skipped
           PY
