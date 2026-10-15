@@ -117,3 +117,72 @@ def test_entrypoint_help():
     assert result.returncode == 0, result.stderr
     assert "FinanceToolkit" in result.stdout
     assert find_spec("finance_toolkit.tui") is not None
+
+
+@pytest.mark.parametrize("entry", ["module", "console"])
+def test_entrypoint_terminal_start_and_keyboard_quit(tmp_path, entry):
+    """Real POSIX terminal driver; automated smoke, not manual acceptance."""
+    import fcntl
+    import os
+    import pty
+    import select
+    import struct
+    import termios
+    from importlib.util import find_spec
+    from pathlib import Path
+    from time import monotonic
+
+    command = (
+        [sys.executable, "-m", "finance_toolkit.tui"]
+        if entry == "module"
+        else [str(Path(sys.executable).parent / "finance-toolkit-tui")]
+    )
+    if find_spec("textual") is None:
+        completed = subprocess.run(
+            command, capture_output=True, text=True, cwd=tmp_path
+        )
+        assert completed.returncode == 2
+        assert "finance-toolkit[tui]" in completed.stderr
+        assert "Traceback" not in completed.stderr
+        return
+    master, slave = pty.openpty()
+    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
+    process = subprocess.Popen(
+        command,
+        stdin=slave,
+        stdout=slave,
+        stderr=slave,
+        cwd=tmp_path,
+        env={**os.environ, "TERM": "xterm-256color"},
+        start_new_session=True,
+    )
+    os.close(slave)
+    transcript = bytearray()
+    try:
+        deadline = monotonic() + 15
+        while b"Offline-Demo" not in transcript and monotonic() < deadline:
+            readable, _, _ = select.select([master], [], [], 0.1)
+            if readable:
+                try:
+                    transcript.extend(os.read(master, 65536))
+                except OSError:
+                    break
+        assert b"Offline-Demo" in transcript, transcript.decode(errors="replace")
+        os.write(master, b"\x11")  # Ctrl+Q through the real terminal input driver
+        deadline = monotonic() + 10
+        # Keep consuming output: waiting without reading can fill the PTY buffer
+        # and block Textual while it restores the terminal on shutdown.
+        while process.poll() is None and monotonic() < deadline:
+            readable, _, _ = select.select([master], [], [], 0.1)
+            if readable:
+                try:
+                    transcript.extend(os.read(master, 65536))
+                except OSError:
+                    break
+        assert process.wait(timeout=1) == 0
+        assert b"Traceback" not in transcript
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait(timeout=10)
+        os.close(master)

@@ -3,7 +3,9 @@
 Planungsstand: **2026-10-13**. [Planungsissue #73](https://github.com/maschin96/FinanceToolkit/issues/73),
 [Milestone M5](https://github.com/maschin96/FinanceToolkit/milestone/6).
 Zielrelease: **v0.4.0**, ohne zugesagten Termin. Textual ist vom Eigentümer
-bestätigt. Dies ist eine Planung; die TUI ist noch nicht implementiert.
+bestätigt. Dieser Text hält die ursprüngliche Planung fest.
+Aktualisierung 2026-10-15: A–G sind integriert;
+[Gesamtverifikation und verbleibende Release-Gates](38_M5_TUI_VERIFICATION.md).
 Voraussetzung für die Umsetzung: M4/v0.3.1 vollständig abgeschlossen
 ([#66](https://github.com/maschin96/FinanceToolkit/issues/66)) und stabil in main.
 

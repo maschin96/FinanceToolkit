@@ -1,9 +1,9 @@
 # M5 – TUI-Verträge und Installationsprofil (#74)
 
-Stand 2026-10-14, auf stabilem M4/v0.3.1. Paket A liefert Konfiguration,
-Adaptergrenze und eine startbare Terminalhülle. Navigation/Jobs, Formulare,
-weitere Service-Adapter und Persistenz sind Abnahme der Pakete B–G und noch
-nicht verfügbar. Dies ist keine Freigabe von M5/v0.4.0.
+Dieser Bericht dokumentiert Paket A vom 2026-10-14 auf stabilem M4/v0.3.1.
+Die folgende Parametertabelle ist der damalige Schema-Startstand. Die Ergänzungen
+der Pakete B–G stehen in den jeweiligen Bedienberichten und im aktuellen
+`config.py`; [Gesamtstand und Release-Gates](38_M5_TUI_VERIFICATION.md).
 
 ## Installation und Einstieg
 

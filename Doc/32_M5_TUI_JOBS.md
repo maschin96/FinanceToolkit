@@ -3,8 +3,9 @@
 Die App bietet sechs per Ctrl+1…6 erreichbare Ansichten: Start, Portfolio,
 Risiko, Strategien, Indizes und Workspace. Das
 [Portfolioformular](33_M5_TUI_PORTFOLIO.md) ist in #76 ergänzt;
-[Risiko/Stress](34_M5_TUI_RISK.md) in #77; weitere Fachansichten werden in
-#78–#80 ergänzt und sind als ausstehend angezeigt.
+[Risiko/Stress](34_M5_TUI_RISK.md) in #77,
+[Strategien](35_M5_TUI_STRATEGIES.md), [Indizes](36_M5_TUI_INDICES.md) und
+[Workspaces/Exporte](37_M5_TUI_WORKSPACES.md) in #78–#80.
 Tab/Shift+Tab wechseln den sichtbaren Fokus, Enter aktiviert Buttons.
 F1 öffnet eine scrollbare Hilfe, Escape schließt sie. F2 zeigt die vollständige
 Fehlerdiagnose in einer scrollbaren Ansicht; Escape kehrt zurück.
@@ -22,8 +23,10 @@ den nächsten Start, statt unbemerkt alte Parameter zu rechnen.
 monoton steigende Lauf-ID und einen eigenen validierten, unveränderlichen
 Workspace-Snapshot. Feldänderungen erhöhen die Eingaberevision. Ein erfolgreiches
 Ergebnis bleibt sichtbar veraltet, wenn es einer früheren Revision gehört;
-`exportable` ist dann false. Vollständige Ergebnisansichten und Exporte folgen
-in C–G; fehlgeschlagene oder abgebrochene Jobs sind nie exportierbar.
+`exportable` ist dann false. Vollständige Ergebnisansichten und Exporte sind in C–G ergänzt;
+fehlgeschlagene oder abgebrochene Rechenjobs sind nie exportierbar.
+Ein fehlgeschlagener Dateiexport darf mit denselben aktuellen Rechenergebnissen
+erneut versucht werden (siehe G).
 
 Ein ThreadPoolExecutor besitzt genau einen Worker. Neue Jobs werden abgelehnt,
 solange der physische Worker läuft, auch nach Abbruch. Es gibt keine wartende

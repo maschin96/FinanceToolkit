@@ -75,3 +75,12 @@ nach main; nach Merge CI am tatsächlichen main-Zielcommit prüfen, danach
 v0.4.0 taggen und öffentliche Wheel-/Quelldistributionsartefakte veröffentlichen.
 #81/M5 erst nach vollständigem Veröffentlichungsabschluss schließen.
 Keine PyPI-Veröffentlichung und kein Releaseauftrag durch die Planung.
+
+Stand 2026-10-15: A–G sind integriert (PRs #87–#93). Die Version 0.4.0 wird im
+H-Branch vorbereitet, ist aber noch nicht freigegeben/veröffentlicht.
+Der Eigentümer behält die manuellen macOS-/Linux-Smokes ausdrücklich bei.
+[Verifikationsstand](38_M5_TUI_VERIFICATION.md) und
+[Prüfanleitung/Protokoll](39_M5_MANUAL_SMOKE.md) zeigen das offene Gate.
+Vor dessen Abschluss keinen Release-PR nach main, Tag oder Veröffentlichung
+vornehmen. Der H-Vorbereitungs-PR zielt weiterhin nach codex/milestone-m5 und
+verwendet Refs #81; das Releaseissue bleibt offen.
