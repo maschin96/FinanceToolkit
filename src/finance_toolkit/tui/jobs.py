@@ -34,6 +34,7 @@ class Jobs(Generic[T]):
         )
         self._future: Future[T] | None = None
         self._closed = False
+        self._cancel_guard: Callable[[], bool] | None = None
 
     @property
     def busy(self) -> bool:
@@ -53,8 +54,12 @@ class Jobs(Generic[T]):
     def changed(self) -> None:
         """Invalidate published/running results as soon as a field changes."""
         self.revision += 1
+        if self._cancel_guard is not None:
+            self.cancel()
 
-    def start(self, workspace: Workspace) -> int:
+    def start(
+        self, workspace: Workspace, *, cancel_guard: Callable[[], bool] | None = None
+    ) -> int:
         """Start one owned input snapshot or reject closed/busy state."""
         if self._closed:
             raise ValueError("workspace is closed")
@@ -65,6 +70,7 @@ class Jobs(Generic[T]):
         self.poll()
         snapshot = decode_workspace(encode_workspace(workspace))
         self.run_id += 1
+        self._cancel_guard = cancel_guard
         self.run_revision = self.revision
         self.state = "running"
         self.result = None
@@ -75,6 +81,9 @@ class Jobs(Generic[T]):
     def cancel(self) -> None:
         """Discard this run's result; interrupt only a not-yet-started future."""
         if self.state == "running":
+            if self._cancel_guard is not None and not self._cancel_guard():
+                self.poll()
+                return
             self.state = "cancelled"
             self.result = None
             if self._future is not None:

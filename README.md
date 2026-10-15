@@ -74,8 +74,7 @@ Simulation und Portfolios konfigurieren, Risiken/Stress prüfen, Strategien und
 Hedges vergleichen sowie eigene Indizes und reproduzierbare Exporte bedienen.
 [M5-Plan und Abnahmekriterien](Doc/29_M5_TUI_ROADMAP.md) ·
 [GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
-Ziel v0.4.0; M4/v0.3.1 ist abgeschlossen. Die vollständigen Bedienabläufe
-folgen in #80. Pakete A–F stellen bereits das
+Ziel v0.4.0; M4/v0.3.1 ist abgeschlossen. Pakete A–G stellen bereits das
 optionale Extra `tui`, eine startbare Terminalhülle und
 [typisierte Konfigurations-/Adapterverträge](Doc/31_M5_TUI_CONTRACTS.md) bereit:
 
@@ -94,7 +93,8 @@ Snapshots, Greeks/DV01 und benannte Schocks mit terminalem Stressraster.
 [Strategie-/Hedgevergleiche](Doc/35_M5_TUI_STRATEGIES.md) bieten editierbare
 Rebalancing-/Optionsstrategien, dynamische Orders, eigene Hedgefälle und
 Attribution. [Indizes/Daten](Doc/36_M5_TUI_INDICES.md) bietet eine Datenvorschau,
-Offline-Demo, Cache-Replay und ausdrückliche Yahoo-Aktionen. Dateiexporte folgen in #80.
+Offline-Demo, Cache-Replay und ausdrückliche Yahoo-Aktionen. [Workspaces/Exporte](Doc/37_M5_TUI_WORKSPACES.md) speichern Konfigurationen
+explizit und exportieren vollständige numerische Ergebnisse mit Herkunftsnachweisen.
 
 ## Eigene Portfolios
 

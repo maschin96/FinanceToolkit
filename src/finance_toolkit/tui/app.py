@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import asdict
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from finance_toolkit.tui.config import (
@@ -32,6 +33,16 @@ from finance_toolkit.tui.strategy_service import (
     run_strategies,
     validate_strategies,
 )
+from finance_toolkit.tui.workspace import (
+    RESULT_TYPES,
+    ExportedResult,
+    ExportToken,
+    NumericResult,
+    export_result,
+    load_workspace,
+    save_workspace,
+    unwrap_result,
+)
 
 if TYPE_CHECKING:
     from textual.app import App
@@ -51,6 +62,7 @@ def create_app(
     from textual.screen import ModalScreen
     from textual.widgets import (
         Button,
+        Checkbox,
         ContentSwitcher,
         DataTable,
         Footer,
@@ -263,6 +275,9 @@ def create_app(
             self.field_map: dict[str, tuple[str, Field]] = {}
             self.selected_path = self.selected_time = 0
             self.rendered_run = 0
+            self.numeric_source: NumericResult | None = None
+            self.numeric_revision = -1
+            self.export_token: ExportToken | None = None
 
         def compose(self) -> ComposeResult:
             yield Header()
@@ -421,10 +436,25 @@ def create_app(
                     )
                     yield DataTable(id="index-contributions")
                     yield DataTable(id="quotes")
-                for page, label, issue in (("workspace", "Workspace / Export", 80),):
-                    with VerticalScroll(id=page):
-                        yield Static(f"{label}: Fachformulare folgen in #{issue}.")
-                        yield Button("Zur Startansicht", id=f"back-{page}")
+                with VerticalScroll(id="workspace"):
+                    yield Label("Konfigurationsdatei (JSON)")
+                    yield Input("outputs/workspace.json", id="workspace-path")
+                    yield Checkbox(
+                        "Vorhandene Dateien ausdrücklich überschreiben", id="overwrite"
+                    )
+                    yield Button("Konfiguration speichern", id="save-workspace")
+                    yield Button(
+                        "Konfiguration laden (ohne Berechnung)", id="load-workspace"
+                    )
+                    yield Label("Exportverzeichnis")
+                    yield Input("outputs/tui-export", id="export-path")
+                    yield Checkbox("Optionale Diagramme exportieren", id="export-plots")
+                    yield Button("Aktuelles Ergebnis exportieren", id="export-result")
+                    yield Static(
+                        "Konfigurationen werden nur auf Anforderung gespeichert.",
+                        id="workspace-status",
+                        markup=False,
+                    )
                 with Container(id="result"):
                     yield Static(
                         "Noch kein Ergebnis", id="result-content", markup=False
@@ -486,15 +516,26 @@ def create_app(
             except ValueError as error:
                 self.status_view.update(str(error))
 
-        def begin_job(self, service: Callable[[Workspace], object]) -> None:
+        def begin_job(
+            self,
+            service: Callable[[Workspace], object],
+            *,
+            export_token: ExportToken | None = None,
+        ) -> None:
             try:
                 if self.input_error:
                     raise ValueError(self.input_error)
                 self.jobs.work = service
-                self.jobs.start(self.workspace)
+                self.jobs.start(
+                    self.workspace,
+                    cancel_guard=export_token.request_cancel if export_token else None,
+                )
             except ValueError as error:
                 self.status_view.update(str(error))
             else:
+                self.export_token = export_token
+                if export_token is None:
+                    self.numeric_source = None
                 self.query_one("#portfolio-summary", Static).update(
                     f"Lauf {self.jobs.run_id} gestartet – noch kein aktuelles Ergebnis."
                 )
@@ -544,11 +585,17 @@ def create_app(
             message = f"{self.jobs.state} – Lauf {self.jobs.run_id}{suffix}"
             if self.jobs.error:
                 message += "\n" + self.jobs.error
+            if isinstance(self.jobs.result, ExportedResult):
+                message += f"\nExport geschrieben: {self.jobs.result.directory}"
             if self.input_error:
                 message += "\nEingabe: " + self.input_error
             self.status_view.update(message)
             if self.jobs.state == "succeeded" and self.rendered_run != self.jobs.run_id:
                 self.rendered_run = self.jobs.run_id
+                numeric = unwrap_result(self.jobs.result)
+                if isinstance(numeric, RESULT_TYPES) and not self.jobs.stale:
+                    self.numeric_source = numeric
+                    self.numeric_revision = self.jobs.run_revision
                 self.render_portfolio()
                 self.render_risk()
                 self.render_strategies()
@@ -582,7 +629,7 @@ def create_app(
             self.begin_job(lambda snapshot: calculate_prepared_index(data, snapshot))
 
         def render_index(self) -> None:
-            result = self.jobs.result
+            result = unwrap_result(self.jobs.result)
             data = result.data if isinstance(result, IndexRunResult) else result
             if isinstance(data, IndexData):
                 config = data.config.index
@@ -900,7 +947,7 @@ def create_app(
             )
 
         def render_strategies(self) -> None:
-            result = self.jobs.result
+            result = unwrap_result(self.jobs.result)
             if not isinstance(result, StrategyResult):
                 return
             self.query_one("#strategy-summary", Static).update(
@@ -953,7 +1000,7 @@ def create_app(
                 self.render_book()
 
         def render_book(self) -> None:
-            result = self.jobs.result
+            result = unwrap_result(self.jobs.result)
             if not isinstance(result, StrategyResult) or not result.books:
                 return
             index = self.query_one("#strategy-books", DataTable).cursor_row
@@ -1098,7 +1145,7 @@ def create_app(
                 )
 
         def render_portfolio(self) -> None:
-            result = self.jobs.result
+            result = unwrap_result(self.jobs.result)
             if isinstance(result, RiskResult):
                 result = result.base
             if not isinstance(result, PortfolioResult):
@@ -1222,7 +1269,7 @@ def create_app(
             self.push_screen(ScenarioEditor(self.workspace), saved)
 
         def render_risk(self) -> None:
-            result = self.jobs.result
+            result = unwrap_result(self.jobs.result)
             if not isinstance(result, RiskResult):
                 return
             risk = result.base.analysis.risk
@@ -1321,8 +1368,88 @@ def create_app(
             ):
                 grid.add_row(str(shock * 100), *(str(value) for value in row[:50]))
 
+        def action_save_workspace(self) -> None:
+            try:
+                if self.input_error:
+                    raise ValueError(self.input_error)
+                path = Path(self.query_one("#workspace-path", Input).value)
+                save_workspace(
+                    self.workspace,
+                    path,
+                    overwrite=self.query_one("#overwrite", Checkbox).value,
+                )
+            except (ValueError, OSError) as error:
+                self.query_one("#workspace-status", Static).update(str(error))
+            else:
+                self.query_one("#workspace-status", Static).update(
+                    f"Konfiguration gespeichert: {path}"
+                )
+
+        def action_load_workspace(self) -> None:
+            try:
+                path = Path(self.query_one("#workspace-path", Input).value)
+                workspace = load_workspace(path)
+            except (ValueError, OSError) as error:
+                self.query_one("#workspace-status", Static).update(str(error))
+                return
+            self.workspace = workspace
+            self.draft = encode_workspace(workspace)
+            self.field_errors.clear()
+            self.input_error = self.schema_error = ""
+            self.jobs.changed()
+            for key, (section, field) in self.field_map.items():
+                values = self.draft
+                for part in section.split("."):
+                    values = values[part]
+                self.query_one(f"#{key}", Input).value = format_field(
+                    values[field.name], percent=field.percent
+                )
+            self.query_one("#seed", Input).value = str(workspace.simulation.seed)
+            self.query_one("#currency", Input).value = workspace.currency
+            self.refresh_trades()
+            self.refresh_orders()
+            self.refresh_cases()
+            self.refresh_scenarios()
+            self.query_one("#workspace-status", Static).update(
+                f"Konfiguration geladen: {path}. "
+                "Keine Berechnung oder Netzabfrage gestartet."
+            )
+            self.poll_jobs()
+
+        def action_export_result(self) -> None:
+            if (
+                self.numeric_source is None
+                or self.numeric_revision != self.jobs.revision
+            ):
+                self.status_view.update(
+                    "Zuerst ein aktuelles numerisches Ergebnis berechnen."
+                )
+                return
+            result = self.numeric_source
+            target = Path(self.query_one("#export-path", Input).value)
+            overwrite = self.query_one("#overwrite", Checkbox).value
+            plots = self.query_one("#export-plots", Checkbox).value
+            token = ExportToken()
+            self.begin_job(
+                lambda snapshot: export_result(
+                    result, target, overwrite=overwrite, plot=plots, token=token
+                ),
+                export_token=token,
+            )
+
         async def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id in ("run", "run-portfolio", "run-risk", "run-strategy"):
+            if event.button.id == "save-workspace":
+                self.action_save_workspace()
+            elif event.button.id == "load-workspace":
+                self.action_load_workspace()
+            elif event.button.id == "export-result":
+                self.action_export_result()
+            elif event.button.id in (
+                "run",
+                "run-portfolio",
+                "run-risk",
+                "run-strategy",
+            ):
                 self.action_calculate()
             elif event.button.id == "prepare-index":
                 self.action_prepare_index()
