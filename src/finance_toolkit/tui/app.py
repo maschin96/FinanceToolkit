@@ -16,6 +16,14 @@ from finance_toolkit.tui.config import (
     encode_workspace,
 )
 from finance_toolkit.tui.forms import Field, form_fields, format_field, parse_field
+from finance_toolkit.tui.index_service import (
+    IndexData,
+    IndexRunResult,
+    QuoteResult,
+    calculate_prepared_index,
+    prepare_index,
+    run_quotes,
+)
 from finance_toolkit.tui.jobs import Jobs
 from finance_toolkit.tui.risk_service import RiskResult, run_risk
 from finance_toolkit.tui.services import PortfolioResult, position_rows, run_portfolio
@@ -28,8 +36,14 @@ from finance_toolkit.tui.strategy_service import (
 if TYPE_CHECKING:
     from textual.app import App
 
+    from finance_toolkit.yahoo import YahooClient
 
-def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[None]:
+
+def create_app(
+    *,
+    work: Callable[[Workspace], object] = run_portfolio,
+    data_client: YahooClient | None = None,
+) -> App[None]:
     """Create an optional UI with a bounded worker and keyboard-only navigation."""
     from textual.app import App, ComposeResult
     from textual.containers import Container, VerticalScroll
@@ -119,8 +133,8 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "weiterrechnen; bis zu seinem Ende bleibt ein neuer Lauf\n"
                     "gesperrt.\n"
                     "Keine Prozentanzeige ohne messbaren Fortschritt.\n\n"
-                    "Portfolio/Risiko/Strategien sind verfügbar; Indizes und\n"
-                    "Dateiexporte folgen in F/G. Escape schließt die Hilfe.",
+                    "Portfolio/Risiko/Strategien/Indizes sind verfügbar;\n"
+                    "Dateiexporte folgen in G. Escape schließt die Hilfe.",
                     markup=False,
                 )
                 yield Button("Zurück", id="close-help")
@@ -379,10 +393,35 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     yield DataTable(id="strategy-books", cursor_type="row")
                     yield DataTable(id="book-ledger")
                     yield DataTable(id="book-attribution")
-                for page, label, issue in (
-                    ("index", "Indizes / Daten", 79),
-                    ("workspace", "Workspace / Export", 80),
-                ):
+                with VerticalScroll(id="index"):
+                    yield Static(
+                        "1. Daten/fehlende Sitzungen prüfen. "
+                        "2. Index mit angezeigten Daten rechnen. Keine FX-Konversion."
+                    )
+                    for field in form_fields(type(self.workspace.index)):
+                        self.field_map[f"index-{field.name}"] = ("index", field)
+                    yield from form_widgets(self.workspace.index, "index", set())
+                    yield Button("Demo/Cache-Daten prüfen (Ctrl+R)", id="prepare-index")
+                    yield Button(
+                        "Yahoo-Historien jetzt online abrufen", id="fetch-index"
+                    )
+                    yield Button("Yahoo-Quotes jetzt online abrufen", id="fetch-quotes")
+                    yield Static(
+                        "Noch keine Daten geprüft", id="index-preview", markup=False
+                    )
+                    yield DataTable(id="index-sources")
+                    yield Button(
+                        "Index mit angezeigten Sitzungen rechnen", id="calculate-index"
+                    )
+                    yield Static("Noch kein Index", id="index-summary", markup=False)
+                    yield DataTable(id="index-levels")
+                    yield Static(
+                        "Driftgewichte und Intervallbeiträge (Dezimalanteile); "
+                        "maximal 50 Datenpunkte je Ansicht."
+                    )
+                    yield DataTable(id="index-contributions")
+                    yield DataTable(id="quotes")
+                for page, label, issue in (("workspace", "Workspace / Export", 80),):
                     with VerticalScroll(id=page):
                         yield Static(f"{label}: Fachformulare folgen in #{issue}.")
                         yield Button("Zur Startansicht", id=f"back-{page}")
@@ -431,6 +470,9 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 if self.input_error:
                     raise ValueError(self.input_error)
                 page = self.query_one("#pages", ContentSwitcher).current
+                if page == "index" and self.injected_work is None:
+                    self.action_prepare_index()
+                    return
                 if page == "strategy" and self.injected_work is None:
                     validate_strategies(self.workspace)
                 service = (
@@ -440,7 +482,15 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     if page == "risk"
                     else run_portfolio
                 )
-                self.jobs.work = self.injected_work or service
+                self.begin_job(self.injected_work or service)
+            except ValueError as error:
+                self.status_view.update(str(error))
+
+        def begin_job(self, service: Callable[[Workspace], object]) -> None:
+            try:
+                if self.input_error:
+                    raise ValueError(self.input_error)
+                self.jobs.work = service
                 self.jobs.start(self.workspace)
             except ValueError as error:
                 self.status_view.update(str(error))
@@ -459,6 +509,10 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "#rebalancing-results",
                     "#book-ledger",
                     "#book-attribution",
+                    "#index-sources",
+                    "#index-levels",
+                    "#index-contributions",
+                    "#quotes",
                 ):
                     self.query_one(selector, DataTable).clear()
                 self.query_one("#risk-summary", Static).update(
@@ -468,6 +522,12 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "Noch kein aktueller Vergleich."
                 )
                 self.query_one("#wealth-line", Sparkline).data = []
+                self.query_one("#index-preview", Static).update(
+                    "Noch keine aktuellen Daten."
+                )
+                self.query_one("#index-summary", Static).update(
+                    "Noch kein aktueller Index."
+                )
                 self.poll_jobs()
 
         def action_cancel(self) -> None:
@@ -492,6 +552,158 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 self.render_portfolio()
                 self.render_risk()
                 self.render_strategies()
+                self.render_index()
+
+        def action_prepare_index(self, *, online: bool = False) -> None:
+            if self.input_error:
+                self.status_view.update(self.input_error)
+                return
+            if online:
+                self.draft["index"]["source"] = "yahoo"
+                self.workspace = decode_workspace(self.draft)
+                self.query_one("#index-source", Input).value = "yahoo"
+                self.jobs.changed()
+            elif self.workspace.index.source == "yahoo":
+                self.status_view.update(
+                    "Online-Historien nur über den Yahoo-Abrufbutton."
+                )
+                return
+            self.begin_job(
+                lambda snapshot: prepare_index(
+                    snapshot, client=data_client, online_authorized=online
+                )
+            )
+
+        def action_index_calculate(self) -> None:
+            data = self.jobs.result
+            if not isinstance(data, IndexData) or self.jobs.state != "succeeded":
+                self.status_view.update("Zuerst Daten und Sitzungen prüfen.")
+                return
+            self.begin_job(lambda snapshot: calculate_prepared_index(data, snapshot))
+
+        def render_index(self) -> None:
+            result = self.jobs.result
+            data = result.data if isinstance(result, IndexRunResult) else result
+            if isinstance(data, IndexData):
+                config = data.config.index
+                self.query_one("#index-preview", Static).update(
+                    f"Sitzungen geprüft: {config.source}, {config.start} bis "
+                    f"exklusiv {config.end}; Repair={config.repair}.\n"
+                    f"Ausgeschlossene Sitzungen: {data.excluded_sessions}\n"
+                    f"Fehlende Sitzungen je Ticker: {data.missing_sessions}\n"
+                    "Die Indexrechnung verwendet erst nach Ihrer Aktion diese Daten."
+                )
+                table = self.query_one("#index-sources", DataTable)
+                table.clear(columns=True)
+                table.add_columns(
+                    "Ticker",
+                    "Quelle/Modus",
+                    "Abrufzeit",
+                    "Währung",
+                    "Einheitenfaktor",
+                    "Adjustierung",
+                    "Zeitzone",
+                    "Datenhash",
+                )
+                for ticker, history in data.histories.items():
+                    table.add_row(
+                        ticker,
+                        history.source + " / " + history.source_mode,
+                        history.fetched_at.isoformat(),
+                        history.currency,
+                        str(history.unit_scale),
+                        history.adjustment,
+                        history.timezone,
+                        history.data_hash,
+                    )
+            if isinstance(result, IndexRunResult):
+                index = result.index
+                self.query_one("#index-summary", Static).update(
+                    f"Preis-/Total-Return-Index in Punkten; Datenwährung "
+                    f"{index.metadata['currency']}. Keine FX-Konversion.\n"
+                    f"Preis: {index.metadata['price_model']}\n"
+                    f"Total Return: {index.metadata['total_return_model']}"
+                )
+                table = self.query_one("#index-levels", DataTable)
+                table.clear(columns=True)
+                table.add_columns(
+                    "Datum",
+                    "Preisindex (Punkte)",
+                    "Total Return (Punkte)",
+                    "Preisrendite",
+                    "Total-Return-Rendite",
+                )
+                for i, day in enumerate(index.price.dates[:50]):
+                    table.add_row(
+                        *(
+                            str(x)
+                            for x in (
+                                day,
+                                index.price.levels[i],
+                                index.total_return.levels[i],
+                                index.price.returns[i],
+                                index.total_return.returns[i],
+                            )
+                        )
+                    )
+                table = self.query_one("#index-contributions", DataTable)
+                table.clear(columns=True)
+                table.add_columns(
+                    "Art", "Datum", "Ticker", "Driftgewicht", "Intervallbeitrag"
+                )
+                for kind, values in (
+                    ("Preis", index.price),
+                    ("Total Return", index.total_return),
+                ):
+                    for i, day in enumerate(values.dates[:50]):
+                        for j, ticker in enumerate(values.tickers[:50]):
+                            table.add_row(
+                                kind,
+                                day,
+                                ticker,
+                                str(values.weights[i, j]),
+                                str(values.contributions[i, j]),
+                            )
+            if isinstance(result, QuoteResult):
+                self.query_one("#index-preview", Static).update(
+                    "Expliziter Quoteabruf: regulärer Marktpreis, "
+                    "keine Echtzeitzusage. "
+                    "Börsenverzögerung kann unbekannt sein."
+                )
+                table = self.query_one("#quotes", DataTable)
+                table.clear(columns=True)
+                table.add_columns(
+                    "Ticker",
+                    "Preis",
+                    "Währung",
+                    "Quelle/Modus",
+                    "Marktzeit",
+                    "Abrufzeit",
+                    "Börse",
+                    "Zeitzone",
+                    "Verzögerung (s)",
+                    "Session",
+                )
+                for ticker, quote in result.quotes.items():
+                    table.add_row(
+                        *(
+                            str(x)
+                            for x in (
+                                ticker,
+                                quote.price,
+                                quote.currency,
+                                quote.source + " / " + quote.source_mode,
+                                quote.market_time.isoformat(),
+                                quote.fetched_at.isoformat(),
+                                quote.exchange,
+                                quote.timezone,
+                                quote.delay_seconds
+                                if quote.delay_seconds is not None
+                                else "unbekannt",
+                                quote.session,
+                            )
+                        )
+                    )
 
         def on_input_changed(self, event: Input.Changed) -> None:
             key = event.input.id or ""
@@ -1112,6 +1324,18 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
         async def on_button_pressed(self, event: Button.Pressed) -> None:
             if event.button.id in ("run", "run-portfolio", "run-risk", "run-strategy"):
                 self.action_calculate()
+            elif event.button.id == "prepare-index":
+                self.action_prepare_index()
+            elif event.button.id == "fetch-index":
+                self.action_prepare_index(online=True)
+            elif event.button.id == "calculate-index":
+                self.action_index_calculate()
+            elif event.button.id == "fetch-quotes":
+                self.begin_job(
+                    lambda snapshot: run_quotes(
+                        snapshot, client=data_client, online_authorized=True
+                    )
+                )
             elif event.button.id in ("add-order", "edit-order"):
                 self.edit_trade(add=event.button.id == "add-order", section="strategy")
             elif event.button.id in ("add-case", "edit-case"):

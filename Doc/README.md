@@ -8,6 +8,7 @@
 - [M5 – Simulation und Portfolio bedienen](33_M5_TUI_PORTFOLIO.md)
 - [M5 – Risiko und Stress](34_M5_TUI_RISK.md)
 - [M5 – Strategien, Hedging und Attribution](35_M5_TUI_STRATEGIES.md)
+- [M5 – Indizes und optionale Daten](36_M5_TUI_INDICES.md)
 - [M2 – Portfolio Risk Lab: Umsetzungsplanung](17_M2_ROADMAP.md)
 - [M2 – Risk Lab](19_RISK_LAB.md)
 - [M2 – API-Verträge und Referenzfälle](18_M2_CONTRACTS.md)
