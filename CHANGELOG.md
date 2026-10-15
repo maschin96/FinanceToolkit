@@ -1,5 +1,24 @@
 # Änderungen
 
+## Unveröffentlicht – 0.4.0 (M5)
+
+- Optionale Textual-TUI mit sechs tastaturbedienbaren Ansichten und begrenzten,
+  abbrechbaren Hintergrundjobs (#74, #75).
+- GBM-/Portfolioformulare, Tradeeditor, Pfad-/Zeitwahl, Risiken, Greeks und
+  benannte Stressszenarien mit Terminalraster (#76, #77).
+- Gemeinsame Rebalancing-/Options-/Hedgevergleiche, dynamische Orders und
+  vollständige P&L-Attribution (#78).
+- Synthetische Indexdemo, Cache-Replay, Datenvorschau und ausschließlich
+  ausdrücklich ausgelöste Yahoo-Abrufe (#79).
+- Versionierte Konfigurationen, exakte CSV/JSON-Exporte mit Parametern, Einheiten,
+  Versionen/Hashes, Überschreibschutz und Abbruch-/Fehlerbehandlung (#80).
+- Voll-, Kern- und TUI-Installationsprofile mit expliziten Skiplisten und
+  isolierten Wheeltests; manuelle Terminalabnahme vor Release noch offen (#81).
+
+Keine neuen Finanzmodelle oder numerischen Diskretisierungen. Keine empirische
+Marktvalidierung, Windows-Supportzusage oder PyPI-Veröffentlichung.
+[Abnahmestand](Doc/38_M5_TUI_VERIFICATION.md).
+
 ## 0.3.1 – 2026-10-13
 
 - Einheitliche Fälligkeitstoleranz für Optionsbuch und Attribution, einschließlich

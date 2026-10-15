@@ -236,3 +236,26 @@ nutzt öffentliche Kern-APIs. Preiszellen sind im UI auf 5 Millionen begrenzt,
 ohne Laufzeitgarantie; Kern-APIs bleiben unverändert. Vollständige
 [Verträge und Standards](31_M5_TUI_CONTRACTS.md). Navigation/Jobs und alle
 weiteren Bedienabläufe folgen in #75–#80, keine vollständige UI-Freigabe.
+
+
+## ADR – M5: Jobs, Ergebnispräzision und Freigabe (2026-10-15, #80/#81)
+
+Ein begrenzter ThreadPoolExecutor hält die TUI bedienbar; Kernaufrufe werden
+nicht erzwungen beendet. Lauf-ID und Eingaberevision verhindern den Export
+veralteter/fehlgeschlagener Rechenstände. Formulare zeigen beschriftete
+Prozentwerte, speichern jedoch dezimale Konfigurationen; Exporte verwenden
+vollständige Arrays unabhängig von der begrenzten Terminaldarstellung.
+Der Dateiexport wird vollständig vorbereitet und seine kurze Veröffentlichung
+mit einem Abbruch-Token serialisiert. Ein akzeptierter Abbruch vor dieser Grenze
+veröffentlicht nichts; ein bereits veröffentlichter Export bleibt erfolgreich.
+Ein behandelter Austauschfehler stellt das ursprüngliche Ziel wieder her.
+Keine Garantie gegen Stromausfall zwischen Verzeichnisumbenennungen.
+
+M5 fügt Adapter und keine neuen Finanzmodelle/Simulationsverfahren hinzu.
+Vorhandene wissenschaftliche Referenzen einschließlich Hedgekonvergenz bleiben
+verbindlich; API-Gleichheit allein ist kein fachlicher Referenzbeweis.
+Kern/TUI/Vollprofil besitzen explizite Skiplisten. Automatisierte Headless- und
+Wheeltests ersetzen die in #81 verlangte manuelle Terminalabnahme nicht.
+Der Eigentümer hat dieses Gate am 2026-10-15 ausdrücklich beibehalten.
+Bis zu dessen Nachweis verbleiben M5, Tag und Veröffentlichung offen; main
+enthält weiterhin das freigegebene v0.3.1. Kein unabhängiger Reviewer verfügbar.

@@ -84,7 +84,8 @@ Textual 8.2.8 ist als optionale UI-Abhängigkeit für `tui` aufgenommen. Die
 [Projektlizenz ist MIT](https://github.com/Textualize/textual/blob/main/LICENSE).
 Vor Aufnahme wurden Wheel-METADATA einschließlich Python-Anforderungen,
 License-Expression, Classifier und License-File in isolierter Umgebung geprüft
-(2026-10-14). Textual >=3.9,<4 und alle TUI-Transitiven erlauben Python 3.11–3.13.
+(2026-10-14). Die Python-Anforderung von Textual lautet >=3.9,<4.0; alle TUI-Transitiven
+erlauben die unterstützten Python-Versionen 3.11–3.13.
 Neue Pakete: Textual 8.2.8, Rich 15.0.0, markdown-it-py 4.2.0,
 mdit-py-plugins 0.6.1, mdurl 0.1.2 und linkify-it-py 2.2.0: MIT.
 Bereits gelockte Transitiven: platformdirs 4.12.4 MIT, Pygments 2.21.0
@@ -93,3 +94,18 @@ Versionen/Hashes einschließlich Pythonvarianten stehen in uv.lock. Lizenzen
 verbleiben in den Distributionen; kein separates Bündeln der Abhängigkeiten.
 Python-Kompatibilität wird zusätzlich über die aktuelle CI-Matrix geprüft.
 [Verträge und Profil](31_M5_TUI_CONTRACTS.md); vollständige App-Abnahme in #81.
+
+
+## Abschließende M5-Profile (#81)
+
+Vollprofil: `uv sync --locked --all-extras`; 495 Tests ohne Auslassung.
+Kern: `uv sync --locked`; 476 Tests und 19 namentlich erlaubte Skips (zwölf
+UI-, sieben Diagrammtests). TUI: `uv sync --locked --extra tui`; 488 Tests,
+sieben Diagramm-Skips. Alle Profile verwenden denselben Lockstand, ohne neue
+Pflichtabhängigkeiten. Vollprofil-CI läuft auf Python 3.11–3.13; die beiden
+reduzierten Profile auf 3.13. Namen und Anzahl werden im XML-Bericht geprüft.
+Der isolierte Wheeltest installiert Laufzeit-/Testwerkzeuge gesondert und
+führt außerhalb des Quellbaums dieselben Tests sowie alle alten Offline-CLIs aus.
+Textual bleibt lazy; numerische Workspaces/Exporte benötigen es nicht.
+Lizenzangaben des Abschnitts oben wurden am 2026-10-15 erneut mit installierter
+Paket-METADATA abgeglichen; keine zusätzlichen Abhängigkeiten in H.

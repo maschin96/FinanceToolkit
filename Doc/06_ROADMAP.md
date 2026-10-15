@@ -93,3 +93,10 @@ Implementierung; keine Deadline ohne belastbare Schätzung. Erst nach
 vollständigem M4-Abschluss und bei Umsetzungsbeginn `codex/milestone-m5`
 vom aktuellen stabilen main anlegen. Issue-PRs dorthin, Release-PR nach main
 erst bei Freigabereife; #81/M5 erst nach vollständiger Veröffentlichung schließen.
+
+
+Stand 2026-10-15: M5 A–G (#74–#80) sind über PR #87–#93 in
+`codex/milestone-m5` integriert und geschlossen. #81 bereitet die abschließende
+Dokumentation und Paketversion 0.4.0 vor. Die manuellen macOS-/Linux-Tastaturtests
+bleiben nach Eigentümerbestätigung Pflicht; kein Release oder Merge nach main
+vor diesem Nachweis. [Abnahmestand](38_M5_TUI_VERIFICATION.md).
