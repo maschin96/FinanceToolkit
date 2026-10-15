@@ -7,6 +7,7 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from finance_toolkit.tui.config import (
+    HedgeCaseConfig,
     InstrumentConfig,
     ScenarioConfig,
     TradeConfig,
@@ -18,6 +19,11 @@ from finance_toolkit.tui.forms import Field, form_fields, format_field, parse_fi
 from finance_toolkit.tui.jobs import Jobs
 from finance_toolkit.tui.risk_service import RiskResult, run_risk
 from finance_toolkit.tui.services import PortfolioResult, position_rows, run_portfolio
+from finance_toolkit.tui.strategy_service import (
+    StrategyResult,
+    run_strategies,
+    validate_strategies,
+)
 
 if TYPE_CHECKING:
     from textual.app import App
@@ -113,14 +119,51 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "weiterrechnen; bis zu seinem Ende bleibt ein neuer Lauf\n"
                     "gesperrt.\n"
                     "Keine Prozentanzeige ohne messbaren Fortschritt.\n\n"
-                    "Portfolio/Risiko sind verfügbar; weitere Fachansichten\n"
-                    "folgen in E–G. Escape schließt diese Hilfe.",
+                    "Portfolio/Risiko/Strategien sind verfügbar; Indizes und\n"
+                    "Dateiexporte folgen in F/G. Escape schließt die Hilfe.",
                     markup=False,
                 )
                 yield Button("Zurück", id="close-help")
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
             self.dismiss()
+
+    class CaseEditor(ModalScreen[HedgeCaseConfig | None]):
+        BINDINGS = [("escape", "dismiss(None)", "Abbrechen")]
+
+        def __init__(self, case: HedgeCaseConfig) -> None:
+            super().__init__(id="case-editor")
+            self.case = case
+
+        def compose(self) -> ComposeResult:
+            with VerticalScroll():
+                yield from form_widgets(self.case, "case", set())
+                yield Static("", id="case-error", markup=False)
+                yield Button("Fall übernehmen", id="save-case")
+                yield Button("Abbrechen", id="cancel-case")
+
+        def on_input_changed(self, event: Input.Changed) -> None:
+            event.stop()
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            event.stop()
+            if event.button.id == "cancel-case":
+                self.dismiss(None)
+                return
+            try:
+                payload = {
+                    field.name: parse_field(
+                        self.query_one(f"#case-{field.name}", Input).value,
+                        field.annotation,
+                        percent=field.percent,
+                    )
+                    for field in form_fields(HedgeCaseConfig)
+                }
+                case = decode_workspace({"hedge": {"cases": [payload]}}).hedge.cases[0]
+            except ValueError as error:
+                self.query_one("#case-error", Static).update(str(error))
+            else:
+                self.dismiss(case)
 
     class ScenarioEditor(ModalScreen[ScenarioConfig | None]):
         BINDINGS = [("escape", "dismiss(None)", "Abbrechen")]
@@ -292,8 +335,51 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                         "Spalten ΔSpot (%), P&L (Währung); maximal 50×50 Zellen."
                     )
                     yield DataTable(id="stress-grid")
+                with VerticalScroll(id="strategy"):
+                    yield Static(
+                        "Gleicher Markt/Kapital; getrennte Openingannahmen. "
+                        "Finanzierung/Zins in Portfolio; kein Gewinnranking."
+                    )
+                    for section, comparison_config, excluded in (
+                        ("strategy", self.workspace.strategy, {"orders"}),
+                        ("hedge", self.workspace.hedge, {"option", "cases"}),
+                        ("hedge.option", self.workspace.hedge.option, set()),
+                    ):
+                        prefix = section.replace(".", "-")
+                        for field in form_fields(
+                            type(comparison_config), exclude=excluded
+                        ):
+                            self.field_map[f"{prefix}-{field.name}"] = (section, field)
+                        yield from form_widgets(comparison_config, prefix, excluded)
+                    yield Static(
+                        "Eigene Hedgefälle ersetzen gemeinsame "
+                        "Stride-/Regel-/Kostenfelder; leer = gemeinsame Felder."
+                    )
+                    yield DataTable(id="hedge-cases", cursor_type="row")
+                    yield Button("Hedgefall hinzufügen", id="add-case")
+                    yield Button("Hedgefall ändern", id="edit-case")
+                    yield Button("Hedgefall löschen", id="delete-case")
+                    yield Static(
+                        "Dynamische Orders: Zeit ist der Ausführungszeitpunkt; "
+                        "Signal am vorherigen Punkt, t=0 sofort."
+                    )
+                    yield DataTable(id="strategy-orders", cursor_type="row")
+                    yield Button("Order hinzufügen", id="add-order")
+                    yield Button("Order ändern", id="edit-order")
+                    yield Button("Order löschen", id="delete-order")
+                    yield Button("Strategien/Hedges rechnen", id="run-strategy")
+                    yield Static(
+                        "Noch kein Vergleich", id="strategy-summary", markup=False
+                    )
+                    yield DataTable(id="rebalancing-results")
+                    yield Static(
+                        "Buch mit Pfeiltasten auswählen; Details: Pfad 0, "
+                        "maximal 50 Zeitpunkte, vollständige Daten im Ergebnis."
+                    )
+                    yield DataTable(id="strategy-books", cursor_type="row")
+                    yield DataTable(id="book-ledger")
+                    yield DataTable(id="book-attribution")
                 for page, label, issue in (
-                    ("strategy", "Strategien / Hedging", 78),
                     ("index", "Indizes / Daten", 79),
                     ("workspace", "Workspace / Export", 80),
                 ):
@@ -313,6 +399,8 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             self.check_size()
             self.refresh_trades()
             self.refresh_scenarios()
+            self.refresh_orders()
+            self.refresh_cases()
 
         def on_resize(self, event: Resize) -> None:
             if self.ready:
@@ -343,9 +431,16 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 if self.input_error:
                     raise ValueError(self.input_error)
                 page = self.query_one("#pages", ContentSwitcher).current
-                self.jobs.work = self.injected_work or (
-                    run_risk if page == "risk" else run_portfolio
+                if page == "strategy" and self.injected_work is None:
+                    validate_strategies(self.workspace)
+                service = (
+                    run_strategies
+                    if page == "strategy"
+                    else run_risk
+                    if page == "risk"
+                    else run_portfolio
                 )
+                self.jobs.work = self.injected_work or service
                 self.jobs.start(self.workspace)
             except ValueError as error:
                 self.status_view.update(str(error))
@@ -360,10 +455,17 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "#position-greeks",
                     "#stress-results",
                     "#stress-grid",
+                    "#strategy-books",
+                    "#rebalancing-results",
+                    "#book-ledger",
+                    "#book-attribution",
                 ):
                     self.query_one(selector, DataTable).clear()
                 self.query_one("#risk-summary", Static).update(
                     "Noch kein aktuelles Risikoergebnis."
+                )
+                self.query_one("#strategy-summary", Static).update(
+                    "Noch kein aktueller Vergleich."
                 )
                 self.query_one("#wealth-line", Sparkline).data = []
                 self.poll_jobs()
@@ -389,6 +491,7 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 self.rendered_run = self.jobs.run_id
                 self.render_portfolio()
                 self.render_risk()
+                self.render_strategies()
 
         def on_input_changed(self, event: Input.Changed) -> None:
             key = event.input.id or ""
@@ -407,8 +510,11 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 return
             if key in self.field_map:
                 section, field = self.field_map[key]
+                draft_section = self.draft
+                for part in section.split("."):
+                    draft_section = draft_section[part]
                 if key not in self.field_errors and event.value == format_field(
-                    self.draft[section][field.name], percent=field.percent
+                    draft_section[field.name], percent=field.percent
                 ):
                     return
             self.jobs.changed()
@@ -419,7 +525,10 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     self.draft["currency"] = event.value
                 else:
                     section, field = self.field_map[key]
-                    self.draft[section][field.name] = parse_field(
+                    draft_section = self.draft
+                    for part in section.split("."):
+                        draft_section = draft_section[part]
+                    draft_section[field.name] = parse_field(
                         event.value, field.annotation, percent=field.percent
                     )
             except ValueError as error:
@@ -455,12 +564,18 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     str(trade.fee),
                 )
 
-        def edit_trade(self, *, add: bool) -> None:
+        def edit_trade(self, *, add: bool, section: str = "portfolio") -> None:
             if self.input_error:
                 self.status_view.update(self.input_error)
                 return
-            index = self.query_one("#trades", DataTable).cursor_row
-            trades = self.workspace.portfolio.trades
+            table_id = "trades" if section == "portfolio" else "strategy-orders"
+            key = "trades" if section == "portfolio" else "orders"
+            index = self.query_one(f"#{table_id}", DataTable).cursor_row
+            trades = (
+                self.workspace.portfolio.trades
+                if section == "portfolio"
+                else self.workspace.strategy.orders
+            )
             if not add and not trades:
                 self.status_view.update("Kein Trade ausgewählt.")
                 return
@@ -468,15 +583,18 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             def saved(trade: TradeConfig | None) -> None:
                 if trade is None:
                     return
-                data = self.draft["portfolio"]["trades"]
+                data = self.draft[section][key]
                 if add:
                     data.append(asdict(trade))
                 else:
                     data[index] = asdict(trade)
                 self.workspace = decode_workspace(self.draft)
                 self.jobs.changed()
-                self.refresh_trades()
-                self.query_one("#trades", DataTable).move_cursor(
+                if section == "portfolio":
+                    self.refresh_trades()
+                else:
+                    self.refresh_orders()
+                self.query_one(f"#{table_id}", DataTable).move_cursor(
                     row=len(data) - 1 if add else index
                 )
                 self.poll_jobs()
@@ -485,6 +603,287 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 TradeEditor(self.workspace, TradeConfig() if add else trades[index]),
                 saved,
             )
+
+        def refresh_orders(self) -> None:
+            table = self.query_one("#strategy-orders", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Nr.", "Ausführung (Jahre)", "Instrument", "Menge", "Quote", "Gebühr"
+            )
+            for index, trade in enumerate(self.workspace.strategy.orders):
+                table.add_row(
+                    *(
+                        str(x)
+                        for x in (
+                            index,
+                            trade.time,
+                            trade.instrument.kind,
+                            trade.quantity,
+                            trade.price,
+                            trade.fee,
+                        )
+                    )
+                )
+
+        def refresh_cases(self) -> None:
+            table = self.query_one("#hedge-cases", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Name",
+                "Stride",
+                "Kalender",
+                "Delta-Schwelle",
+                "Fixkosten",
+                "Kostenanteil",
+            )
+            for case in self.workspace.hedge.cases:
+                table.add_row(
+                    *(
+                        str(x)
+                        for x in (
+                            case.name,
+                            case.stride,
+                            case.calendar_every,
+                            case.threshold,
+                            case.fixed_fee,
+                            case.proportional_fee,
+                        )
+                    )
+                )
+
+        def edit_case(self, *, add: bool) -> None:
+            if self.input_error:
+                self.status_view.update(self.input_error)
+                return
+            index = self.query_one("#hedge-cases", DataTable).cursor_row
+            cases = self.workspace.hedge.cases
+            if not add and not cases:
+                return
+
+            def saved(case: HedgeCaseConfig | None) -> None:
+                if case is None:
+                    return
+                candidate = encode_workspace(self.workspace)
+                if add:
+                    candidate["hedge"]["cases"].append(asdict(case))
+                else:
+                    candidate["hedge"]["cases"][index] = asdict(case)
+                try:
+                    workspace = decode_workspace(candidate)
+                    if workspace.hedge.enabled:
+                        validate_strategies(workspace)
+                except ValueError as error:
+                    self.status_view.update(str(error))
+                    return
+                self.workspace, self.draft = workspace, candidate
+                self.jobs.changed()
+                self.refresh_cases()
+                self.query_one("#hedge-cases", DataTable).move_cursor(
+                    row=len(workspace.hedge.cases) - 1 if add else index
+                )
+                self.poll_jobs()
+
+            self.push_screen(
+                CaseEditor(HedgeCaseConfig() if add else cases[index]), saved
+            )
+
+        def render_strategies(self) -> None:
+            result = self.jobs.result
+            if not isinstance(result, StrategyResult):
+                return
+            self.query_one("#strategy-summary", Static).update(
+                f"Opening: gleicher Markt/Seed {result.config.simulation.seed}, "
+                f"Kapital {result.config.portfolio.initial_cash} "
+                f"{result.config.currency}.\n"
+                "Rebalancing: Zielgewichte; Optionen: konfigurierte Legs; "
+                "Hedges: gleiche Openingoption, gekoppelte Raster.\n"
+                "Lab-Strategiekontrollen: 0.9/1.1×Hedgestrike, keine Tradegebühr. "
+                "Signale lesen nur gegenwärtige Beobachtungen; kein Gewinnranking."
+            )
+            table = self.query_one("#rebalancing-results", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Rebalancing",
+                "Endvermögen (Mittel)",
+                "Gebühren (alle Pfade)",
+                "Umsatz (alle Pfade)",
+            )
+            for name, book in result.rebalancing.items():
+                table.add_row(
+                    name,
+                    str(book.wealth[:, -1].mean()),
+                    str(book.fees.sum()),
+                    str(book.turnover.sum()),
+                )
+            table = self.query_one("#strategy-books", DataTable)
+            table.clear(columns=True)
+            table.add_columns("Kategorie/Name", "Endvermögen (Mittel)", "P&L (Mittel)")
+            for name, ledger in result.books.items():
+                wealth = ledger.wealth
+                table.add_row(
+                    name,
+                    str(wealth[:, -1].mean()),
+                    str((wealth[:, -1] - ledger.initial_cash).mean()),
+                )
+            for name, strategy_paths in result.rebalancing.items():
+                wealth = strategy_paths.wealth
+                table.add_row(
+                    f"rebalancing/{name}",
+                    str(wealth[:, -1].mean()),
+                    str((wealth[:, -1] - strategy_paths.initial_cash).mean()),
+                )
+            self.render_book()
+
+        def on_data_table_row_highlighted(
+            self, event: DataTable.RowHighlighted
+        ) -> None:
+            if event.data_table.id == "strategy-books":
+                self.render_book()
+
+        def render_book(self) -> None:
+            result = self.jobs.result
+            if not isinstance(result, StrategyResult) or not result.books:
+                return
+            index = self.query_one("#strategy-books", DataTable).cursor_row
+            if index >= len(result.books):
+                rebalance_name = tuple(result.rebalancing)[
+                    min(index - len(result.books), len(result.rebalancing) - 1)
+                ]
+                paths = result.rebalancing[rebalance_name]
+                wealth = paths.wealth
+                table = self.query_one("#book-ledger", DataTable)
+                table.clear(columns=True)
+                table.add_columns(
+                    "Buch",
+                    "Signalzeit (Jahre)",
+                    "Ausführung (Jahre)",
+                    "Cash",
+                    "Vermögen",
+                    "P&L",
+                    "Trades",
+                    "Gebühr",
+                    "Umsatz",
+                    "Finanzierung",
+                )
+                for i in range(min(50, len(paths.times))):
+                    signal_time = (
+                        paths.times[i - 1]
+                        if i and paths.trades[0, i].any()
+                        else "Opening"
+                        if i == 0
+                        else "kein Trade"
+                    )
+                    table.add_row(
+                        *(
+                            str(x)
+                            for x in (
+                                f"rebalancing/{rebalance_name}",
+                                signal_time,
+                                paths.times[i],
+                                paths.cash[0, i],
+                                wealth[0, i],
+                                wealth[0, i] - paths.initial_cash,
+                                paths.trades[0, i].tolist(),
+                                paths.fees[0, i].sum(),
+                                paths.turnover[0, i].sum(),
+                                paths.financing[0, i],
+                            )
+                        )
+                    )
+                table = self.query_one("#book-attribution", DataTable)
+                table.clear(columns=True)
+                table.add_column(
+                    "Rebalancing: Aktien-/Cash-Ledger, keine Options-Greek-Attribution"
+                )
+                return
+            name = tuple(result.books)[min(index, len(result.books) - 1)]
+            book = result.books[name]
+            wealth = book.wealth
+            hedge = result.hedges.get(name)
+            table = self.query_one("#book-ledger", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Buch",
+                "Signalzeit (Jahre)",
+                "Zeit (Jahre)",
+                "Cash",
+                "Vermögen",
+                "P&L",
+                "Trades",
+                "Gebühr",
+                "Umsatz",
+                "Finanzierung",
+                "Leihkosten",
+                "Restdelta (Aktien)",
+            )
+            for i in range(min(50, len(book.times))):
+                table.add_row(
+                    *(
+                        str(x)
+                        for x in (
+                            name,
+                            "Fälligkeit"
+                            if hedge is not None
+                            and i == len(book.times) - 1
+                            and book.trades[0, i].any()
+                            else book.times[i - 1]
+                            if i and book.trades[0, i].any()
+                            else "Opening"
+                            if i == 0
+                            else "kein Trade",
+                            book.times[i],
+                            book.cash[0, i],
+                            wealth[0, i],
+                            wealth[0, i] - book.initial_cash,
+                            book.trades[0, i].tolist(),
+                            book.fees[0, i].sum(),
+                            book.turnover[0, i].sum(),
+                            book.financing[0, i],
+                            book.stock_borrow_costs[0, i].sum(),
+                            hedge.residual_delta[0, i].tolist()
+                            if hedge is not None
+                            else "nicht Hedge",
+                        )
+                    )
+                )
+            attribution = result.attributions[name]
+            reconciled = attribution.reconciled
+            table = self.query_one("#book-attribution", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Intervall",
+                "P&L",
+                "Delta",
+                "Gamma",
+                "Theta",
+                "Vega",
+                "Rho",
+                "Residuum",
+                "Kosten",
+                "Leihe",
+                "Finanzierung",
+                "Bilanz",
+            )
+            for i in range(min(50, len(book.times) - 1)):
+                table.add_row(
+                    *(
+                        str(x)
+                        for x in (
+                            i,
+                            wealth[0, i + 1] - wealth[0, i],
+                            attribution.delta[0, i].sum(),
+                            attribution.gamma[0, i].sum(),
+                            attribution.theta[0, i].sum(),
+                            attribution.vega[0, i].sum(),
+                            attribution.rho[0, i].sum(),
+                            attribution.residual[0, i].sum(),
+                            attribution.fees[0, i].sum(),
+                            attribution.borrow[0, i].sum(),
+                            attribution.financing[0, i],
+                            reconciled[0, i],
+                        )
+                    )
+                )
 
         def render_portfolio(self) -> None:
             result = self.jobs.result
@@ -711,8 +1110,28 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 grid.add_row(str(shock * 100), *(str(value) for value in row[:50]))
 
         async def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id in ("run", "run-portfolio", "run-risk"):
+            if event.button.id in ("run", "run-portfolio", "run-risk", "run-strategy"):
                 self.action_calculate()
+            elif event.button.id in ("add-order", "edit-order"):
+                self.edit_trade(add=event.button.id == "add-order", section="strategy")
+            elif event.button.id in ("add-case", "edit-case"):
+                self.edit_case(add=event.button.id == "add-case")
+            elif event.button.id == "delete-case":
+                if not self.input_error and self.workspace.hedge.cases:
+                    index = self.query_one("#hedge-cases", DataTable).cursor_row
+                    del self.draft["hedge"]["cases"][index]
+                    self.workspace = decode_workspace(self.draft)
+                    self.jobs.changed()
+                    self.refresh_cases()
+                    self.poll_jobs()
+            elif event.button.id == "delete-order":
+                if not self.input_error and self.workspace.strategy.orders:
+                    index = self.query_one("#strategy-orders", DataTable).cursor_row
+                    del self.draft["strategy"]["orders"][index]
+                    self.workspace = decode_workspace(self.draft)
+                    self.jobs.changed()
+                    self.refresh_orders()
+                    self.poll_jobs()
             elif event.button.id == "add-scenario":
                 self.add_scenario()
             elif event.button.id == "delete-scenario":
