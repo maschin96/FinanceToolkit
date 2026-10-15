@@ -140,3 +140,62 @@ def test_ui_invalid_edit_stale_results_and_failure_diagnostics():
             await pilot.press("escape", "ctrl+q")
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("size", [(80, 24), (120, 40)])
+def test_navigation_without_control_digits(size):
+    pytest.importorskip("textual")
+    from textual.widgets import Input, Tabs
+
+    from finance_toolkit.tui.app import create_app
+
+    calls = []
+
+    def forbidden(snapshot):
+        calls.append(snapshot)
+        raise AssertionError("navigation must not calculate")
+
+    async def scenario():
+        app = create_app(work=forbidden)
+        async with app.run_test(size=size) as pilot:
+            navigation = app.query_one("#navigation", Tabs)
+            assert navigation.display
+            navigation.focus()
+            for page in (
+                "portfolio",
+                "risk",
+                "strategy",
+                "index",
+                "workspace",
+                "start",
+            ):
+                await pilot.press("right")
+                assert app.query_one("#pages").current == page
+                assert navigation.active == f"nav-{page}"
+                assert app.focused is navigation
+            await pilot.press("left")
+            assert app.query_one("#pages").current == "workspace"
+            await pilot.press("tab")
+            assert app.focused is not navigation
+            await pilot.press("shift+tab")
+            assert app.focused is navigation
+            for number, page in enumerate(
+                ("start", "portfolio", "risk", "strategy", "index", "workspace"), 3
+            ):
+                # Start with a focused field: function keys cannot edit text.
+                current = app.query_one("#pages").current
+                field = app.query_one(f"#{current}").query(Input).first()
+                field.focus()
+                original_value = field.value
+                await pilot.press(f"f{number}")
+                assert app.query_one("#pages").current == page
+                assert navigation.active == f"nav-{page}"
+                assert field.value == original_value
+                assert app.query_one("#seed", Input).value == "42"
+            await pilot.press("f1")
+            assert "F3" in str(app.screen.query_one("Static").render())
+            await pilot.press("escape", "ctrl+q")
+            assert not calls
+            assert app.jobs.run_id == 0
+
+    asyncio.run(scenario())

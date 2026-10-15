@@ -23,12 +23,13 @@ Terminalfenster nacheinander auf **80 Spalten × 24 Zeilen** und
 **120 Spalten × 40 Zeilen** einstellen, vor dem Appstart mit `stty size` prüfen
 (Ausgabe: Zeilen, dann Spalten). Terminalname/-version, Betriebssystem, Python,
 Toolkit-Commit und Textualversion festhalten. Prüfen, dass das Terminal die
-Ctrl+Ziffer-Kombinationen weiterleitet; Abweichungen als Fehler dokumentieren.
+Funktionstasten weiterleitet (Mac ggf. Fn). Die sichtbare Menüleiste muss
+zusätzlich per Tab und Links/Rechts bedienbar sein. Abweichungen protokollieren.
 
 ## Ablauf je Betriebssystem und Größe
 
 1. App starten: Startansicht, sichtbarer Fokus und keine automatische Rechnung/
-   Datenabfrage. Tab/Shift+Tab, Ctrl+1…6 und F1/Escape prüfen. Alle Ansichten
+   Datenabfrage. Tab/Shift+Tab, Menüleiste mit Links/Rechts, F3…F8 und F1/Escape prüfen. Alle Ansichten
    müssen per Tastatur erreichbar sein; überlange Formulare scrollbar. Einmal
    unter 80×24 verkleinern: Warnung und Ctrl+Q bleiben erreichbar. Danach die
    geforderte Größe wiederherstellen.
@@ -37,16 +38,16 @@ Ctrl+Ziffer-Kombinationen weiterleitet; Abweichungen als Fehler dokumentieren.
    Pfad/Zeit ändern und Tabelle prüfen. Seed ungültig setzen: klare Fehlermeldung,
    kein neuer Lauf; Seed korrigieren. Bestehendes Ergebnis bleibt veraltet, bis
    erneut gerechnet wurde.
-3. Risiko: Ctrl+3, Ctrl+R, Snapshot/Greeks/VaR/ES und Stressraster prüfen.
-   Eine Szenariozeile hinzufügen/ändern/löschen. Strategie: Ctrl+4, Ctrl+R;
+3. Risiko: F5, Ctrl+R, Snapshot/Greeks/VaR/ES und Stressraster prüfen.
+   Eine Szenariozeile hinzufügen/ändern/löschen. Strategie: F6, Ctrl+R;
    Rebalancing und Optionsbuch prüfen, im Buch Ledger/Attribution ansehen.
    Ein Hedge benötigt ausdrücklich Short-/Kreditfreigaben gemäß Formular.
-4. Indizes: Ctrl+5, source=demo; Daten zuerst vorbereiten, Quellen/Sitzungen
+4. Indizes: F7, source=demo; Daten zuerst vorbereiten, Quellen/Sitzungen
    prüfen, separaten Indexbutton aktivieren. Preis-/Total-Return-Reihen sichtbar.
    Für einen Fehler source=replay mit einem neuen, leeren Cachepfad und
    Datenvorbereitung verwenden: konkreter Cache-Miss ohne Online-Fallback.
    F2 zeigt die Diagnose, Escape kehrt zurück. Danach demo zurückstellen.
-5. Start mit Seed 99 erneut rechnen. Ctrl+6: neue Konfigurationsdatei und
+5. Start mit Seed 99 erneut rechnen. F8: neue Konfigurationsdatei und
    Exportverzeichnis wählen; speichern. Seed ändern, Datei laden: keine Rechnung,
    altes Ergebnis veraltet. Erneut rechnen und exportieren. Vollständiges Manifest,
    `result.json`, `parameters.json` und CSV vorhanden. Zweiter Export ohne
@@ -84,3 +85,9 @@ kombinierten Stand prüfen, Review-Anmerkungen klären, Release-PR nach main.
 Erst nach erfolgreicher CI des tatsächlichen main-Zielcommits v0.4.0 taggen und
 Wheel/Quelldistribution mit Prüfsummen veröffentlichen. #81/M5 erst danach
 schließen; siehe [Release-Prozess](09_RELEASE_PROCESS.md).
+
+
+Befund vom 2026-10-15: Der Nutzer meldet funktionslose Ctrl+1…6 im
+macOS-Terminal. #95 korrigiert den Bedienweg; dieser Bericht ist keine bestandene
+manuelle Wiederholungsprüfung. Die vier Zeilen bleiben bis tatsächlicher
+Bedienung des korrigierten Commits offen.

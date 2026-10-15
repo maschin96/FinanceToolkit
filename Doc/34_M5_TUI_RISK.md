@@ -1,6 +1,6 @@
 # M5 – Risiko und Stress (#77)
 
-Ctrl+3 öffnet Risiko/Stress. Snapshotpfad und -zeitindex beziehen sich explizit
+F5 öffnet Risiko/Stress. Snapshotpfad und -zeitindex beziehen sich explizit
 auf den Zustand nach Trades/Zahlungen am gewählten GBM-Punkt. Die Rechnung
 verändert weder Trades noch Cashflows und verwendet dieselben öffentlichen
 Portfolio-, Analyse- und Risiko-APIs. Ctrl+R/der Rechnen-Button verwendet den

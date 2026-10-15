@@ -118,6 +118,8 @@ jobs:
               'test_optional_workspace_plot',
               'test_keyboard_navigation_help_and_resize[size0]',
               'test_keyboard_navigation_help_and_resize[size1]',
+              'test_navigation_without_control_digits[size0]',
+              'test_navigation_without_control_digits[size1]',
               'test_ui_remains_responsive_and_cancelled_result_is_not_published',
               'test_ui_invalid_edit_stale_results_and_failure_diagnostics',
               'test_ui_quit_during_active_worker',

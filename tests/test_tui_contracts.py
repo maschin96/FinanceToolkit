@@ -168,6 +168,27 @@ def test_entrypoint_terminal_start_and_keyboard_quit(tmp_path, entry):
                 except OSError:
                     break
         assert b"Offline-Demo" in transcript, transcript.decode(errors="replace")
+        # These are real legacy xterm F-key bytes, not synthetic Pilot events.
+        for sequence, marker in (
+            (b"\x1bOS", b"GBM:"),  # F4: portfolio
+            (b"\x1b[15~", b"expliziter Snapshot"),  # F5: risk
+            (b"\x1b[17~", b"Openingannahmen"),  # F6: strategies
+            (b"\x1b[18~", b"Sitzungen"),  # F7: indices
+            (b"\x1b[19~", b"Konfigurationsdatei"),  # F8: workspace
+            (b"\x1bOR", b"Offline-Demo"),  # F3: start
+        ):
+            os.write(master, sequence)
+            screen_output = bytearray()
+            deadline = monotonic() + 10
+            while marker not in screen_output and monotonic() < deadline:
+                readable, _, _ = select.select([master], [], [], 0.1)
+                if readable:
+                    try:
+                        screen_output.extend(os.read(master, 65536))
+                    except OSError:
+                        break
+            transcript.extend(screen_output)
+            assert marker in screen_output, screen_output.decode(errors="replace")
         os.write(master, b"\x11")  # Ctrl+Q through the real terminal input driver
         deadline = monotonic() + 10
         # Keep consuming output: waiting without reading can fill the PTY buffer

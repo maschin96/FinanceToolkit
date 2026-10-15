@@ -1,6 +1,6 @@
 # M5 – Indizes und optionale Daten (#79)
 
-Ctrl+5 bietet eine synthetische Offline-Demo, Cache-Replay sowie explizite
+F7 bietet eine synthetische Offline-Demo, Cache-Replay sowie explizite
 Yahoo-Historien-/Quoteabrufe. App-Start und Konfigurationsänderungen laden
 keine Daten automatisch. Daten werden zuerst vorbereitet und ihre Quellen,
 fehlenden Sitzungen und Ausschlüsse angezeigt. Erst der separate Indexbutton

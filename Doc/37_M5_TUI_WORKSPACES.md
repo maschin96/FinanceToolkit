@@ -1,6 +1,6 @@
 # M5 – Workspaces und Exporte (#80)
 
-Ctrl+6 bietet explizites Speichern/Laden einer JSON-Konfiguration v1 und den
+F8 bietet explizites Speichern/Laden einer JSON-Konfiguration v1 und den
 Export des zuletzt erfolgreich berechneten, noch aktuellen numerischen Ergebnisses.
 Datei- und Verzeichnispfade sind frei wählbar. Die gemeinsame Checkbox erlaubt
 Überschreiben ausdrücklich; standardmäßig wird eine vorhandene Datei bzw. ein

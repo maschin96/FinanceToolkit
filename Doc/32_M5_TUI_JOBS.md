@@ -1,6 +1,6 @@
 # M5 – Navigation und Hintergrundläufe (#75)
 
-Die App bietet sechs per Ctrl+1…6 erreichbare Ansichten: Start, Portfolio,
+Die App bietet eine sichtbare Menüleiste und sechs per F3…F8 erreichbare Ansichten: Start, Portfolio,
 Risiko, Strategien, Indizes und Workspace. Das
 [Portfolioformular](33_M5_TUI_PORTFOLIO.md) ist in #76 ergänzt;
 [Risiko/Stress](34_M5_TUI_RISK.md) in #77,
@@ -70,3 +70,15 @@ Die gesamte konfigurierte numerische Suite bleibt erforderlich. Basis-CI erlaubt
 nur fünf namentlich aufgezählte UI-Fälle und sechs Diagrammtests als Skips;
 tui-Profil erlaubt nur die sechs Diagrammtests, Vollprofil keine Skips.
 Die Linux-/macOS-Bedien-Smokes der fertigen App bleiben Release-Abnahme in #81.
+
+
+## Korrektur der Terminalnavigation (#95)
+
+Im manuellen macOS-Versuch funktionieren die bisherigen Ctrl+Ziffer-Kürzel
+nicht. Sie bleiben lediglich versteckte Kompatibilitätsaliase für Terminals,
+die solche Ereignisse tatsächlich liefern. Der unterstützte Bedienweg ist
+nun die sichtbare Menüleiste: per Tab/Shift+Tab fokussieren, mit Links/Rechts
+wechseln; der Fokus bleibt dabei auf dem Menü. F3–F8 wechseln direkt zu Start,
+Portfolio, Risiko, Strategien, Indizes, Workspace; auf Mac-Tastaturen ggf. Fn
+mitbenutzen. F1/F2 behalten Hilfe/Diagnose. Der Menüwechsel startet keine Rechnung.
+[Regression und Terminalnachweis](40_M5_TUI_NAVIGATION.md).

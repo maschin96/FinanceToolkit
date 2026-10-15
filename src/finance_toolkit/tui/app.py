@@ -57,6 +57,7 @@ def create_app(
 ) -> App[None]:
     """Create an optional UI with a bounded worker and keyboard-only navigation."""
     from textual.app import App, ComposeResult
+    from textual.binding import Binding
     from textual.containers import Container, VerticalScroll
     from textual.events import Resize
     from textual.screen import ModalScreen
@@ -71,6 +72,8 @@ def create_app(
         Label,
         Sparkline,
         Static,
+        Tab,
+        Tabs,
     )
 
     def form_widgets(config: Any, prefix: str, exclude: set[str]) -> ComposeResult:
@@ -138,7 +141,9 @@ def create_app(
             with VerticalScroll():
                 yield Static(
                     "FinanceToolkit Tastaturhilfe\n\n"
-                    "Ctrl+1…6: Ansichten; Tab/Shift+Tab: Fokus; Enter: Aktion.\n"
+                    "F3…F8: Ansichten. Menüleiste per Tab fokussieren, "
+                    "mit Links/Rechts wechseln.\n"
+                    "Tab/Shift+Tab: Fokus; Enter: Aktion.\n"
                     "Ctrl+R: Demo rechnen; Escape: Lauf abbrechen.\n"
                     "F1: Hilfe; Ctrl+Q: Beenden.\n\n"
                     "Abbruch verwirft das Ergebnis. Ein laufender Kernaufruf kann\n"
@@ -248,12 +253,18 @@ def create_app(
         Sparkline { height: 3; }
         """
         BINDINGS = [
-            ("ctrl+1", "page('start')", "Start"),
-            ("ctrl+2", "page('portfolio')", "Portfolio"),
-            ("ctrl+3", "page('risk')", "Risiko"),
-            ("ctrl+4", "page('strategy')", "Strategien"),
-            ("ctrl+5", "page('index')", "Indizes"),
-            ("ctrl+6", "page('workspace')", "Workspace"),
+            ("f3", "page('start')", "Start"),
+            ("f4", "page('portfolio')", "Portfolio"),
+            ("f5", "page('risk')", "Risiko"),
+            ("f6", "page('strategy')", "Strategien"),
+            ("f7", "page('index')", "Indizes"),
+            ("f8", "page('workspace')", "Workspace"),
+            Binding("ctrl+1", "page('start')", show=False),
+            Binding("ctrl+2", "page('portfolio')", show=False),
+            Binding("ctrl+3", "page('risk')", show=False),
+            Binding("ctrl+4", "page('strategy')", show=False),
+            Binding("ctrl+5", "page('index')", show=False),
+            Binding("ctrl+6", "page('workspace')", show=False),
             ("ctrl+r", "calculate", "Rechnen"),
             ("escape", "cancel", "Abbruch"),
             ("f1", "help", "Hilfe"),
@@ -285,6 +296,16 @@ def create_app(
                 "Terminal mindestens 80×24; Ctrl+Q beendet.", id="size-warning"
             )
             yield self.status_view
+            yield Tabs(
+                Tab("Start", id="nav-start"),
+                Tab("Portfolio", id="nav-portfolio"),
+                Tab("Risiko", id="nav-risk"),
+                Tab("Strategien", id="nav-strategy"),
+                Tab("Indizes", id="nav-index"),
+                Tab("Workspace", id="nav-workspace"),
+                id="navigation",
+                active="nav-start",
+            )
             with ContentSwitcher(initial="start", id="pages"):
                 with VerticalScroll(id="start"):
                     yield Static(
@@ -484,8 +505,16 @@ def create_app(
 
         def action_page(self, page: str) -> None:
             self.query_one("#pages", ContentSwitcher).current = page
+            self.query_one("#navigation", Tabs).active = f"nav-{page}"
             focus = self.query_one(f"#{page}").query("Input, Button, DataTable").first()
             focus.focus()
+
+        def on_tabs_tab_activated(self, event: Tabs.TabActivated) -> None:
+            if event.tabs.id == "navigation" and event.tab.id is not None:
+                # Keep focus on the menu so repeated arrow presses still work.
+                self.query_one(
+                    "#pages", ContentSwitcher
+                ).current = event.tab.id.removeprefix("nav-")
 
         def action_help(self) -> None:
             self.push_screen(Help(id="help"))

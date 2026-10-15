@@ -1,6 +1,6 @@
 # M5 – Strategien, Hedging und Attribution (#78)
 
-Ctrl+4 bietet Buy-and-Hold, Kalender-/Schwellen-Rebalancing, die fünf vorhandenen
+F6 bietet Buy-and-Hold, Kalender-/Schwellen-Rebalancing, die fünf vorhandenen
 Optionsstrategien, ein geplantes dynamisches Optionsbuch, Delta-Hedgevergleiche
 und P&L-Attribution. Die Adapter erzeugen genau einen Markt; alle Varianten
 verwenden dasselbe Anfangskapital. Gemeinsame Zins-/Finanzierungsparameter

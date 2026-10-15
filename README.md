@@ -83,10 +83,11 @@ uv sync --locked --extra tui
 uv run --no-sync finance-toolkit-tui
 ```
 
-Alternativ: `python -m finance_toolkit.tui`. Ctrl+1…6 wählt Ansichten,
+Alternativ: `python -m finance_toolkit.tui`. Die sichtbare Menüleiste lässt sich
+per Tab fokussieren und mit Links/Rechts bedienen. F3…F8 wählt Ansichten direkt,
 Ctrl+R rechnet die Offline-Demo, Escape bricht ab, F1 zeigt Hilfe,
 F2 Fehlerdiagnosen und Ctrl+Q beendet. Tab/Shift+Tab wechselt den Fokus,
-Enter aktiviert Buttons. Die [Portfolioansicht](Doc/33_M5_TUI_PORTFOLIO.md) bietet GBM-/Finanzierungsfelder,
+Enter aktiviert Buttons. Bei Mac-Tastaturen gegebenenfalls Fn+F3…F8 verwenden. Die [Portfolioansicht](Doc/33_M5_TUI_PORTFOLIO.md) bietet GBM-/Finanzierungsfelder,
 editierbare Aktien-/Options-/Anleihentrades und Vermögens-/Positionsansichten
 mit Pfad-/Zeitwahl. [Risiko/Stress](Doc/34_M5_TUI_RISK.md) ergänzt explizite
 Snapshots, Greeks/DV01 und benannte Schocks mit terminalem Stressraster.
@@ -148,7 +149,7 @@ UV_PROJECT_ENVIRONMENT=/tmp/finance-core uv run --no-sync python -m pytest
 ```
 
 Die CI prüft drei Installationsprofile: Vollprofil mit `tui`/`plots`/`yahoo`
-auf Python 3.11–3.13 ohne Auslassungen; Kern ohne Extras mit zwölf benannten
+auf Python 3.11–3.13 ohne Auslassungen; Kern ohne Extras mit 14 benannten
 UI- und sieben Diagramm-Skips; `tui` ohne `plots`/`yahoo` mit sieben benannten
 Diagramm-Skips. Numerische Tests, Replay-/Provider-Fakes und Offline-CLIs laufen
 in allen Profilen. Kernimporte benötigen weder Textual, Matplotlib noch
