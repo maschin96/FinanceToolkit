@@ -47,7 +47,7 @@ Renditen sind bei nichtpositivem Anfangskapital mit Grund undefiniert; Drawdown
 bei nichtpositivem Vermögen ebenfalls. Absolutes Vermögen/P&L bleiben sichtbar.
 Mittleres Endvermögen ist ausdrücklich über alle Pfade aggregiert; terminaler
 VaR/ES bezieht sich auf den aggregierten Portfolioverlust. Risiko-/Stressformulare
-und Greeks folgen in D. Die Vermögens-Sparkline ist als Zeitverlauf des gewählten
+und Greeks stehen in [D](34_M5_TUI_RISK.md). Die Sparkline ist als Zeitverlauf des gewählten
 Pfads beschriftet. Die Tabelle zeigt höchstens 50 Zeitpunkte ab Auswahl;
 die Sparkline höchstens ungefähr 80 Stützpunkte. Eine neue Rechnung entfernt
 die vorherige Ergebnisdarstellung bis zur erfolgreichen Rückgabe.

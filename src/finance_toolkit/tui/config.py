@@ -133,6 +133,20 @@ class PortfolioConfig:
 
 
 @dataclass(frozen=True)
+class ScenarioConfig:
+    """Named hypothetical relative spot and absolute volatility/rate shocks."""
+
+    name: str = "scenario"
+    spot_shocks: float | tuple[float, ...] = 0.0
+    volatility_shocks: float | tuple[float, ...] = 0.0
+    rate_shock: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("scenario name must not be empty")
+
+
+@dataclass(frozen=True)
 class RiskConfig:
     """One selected post-event snapshot and explicitly hypothetical shocks."""
 
@@ -142,6 +156,25 @@ class RiskConfig:
     spot_shocks: tuple[float, ...] = (-0.2, 0.0, 0.2)
     rate_shocks: tuple[float, ...] = (-0.01, 0.0, 0.01)
     volatility_shock: float = 0.0
+    grid_volatility_shocks: tuple[float, ...] = (0.0, 0.05)
+    scenarios: tuple[ScenarioConfig, ...] = ()
+
+    def __post_init__(self) -> None:
+        if (
+            not self.spot_shocks
+            or not self.grid_volatility_shocks
+            or not self.rate_shocks
+        ):
+            raise ValueError("stress grid axes must be nonempty")
+        if len(self.spot_shocks) * len(self.grid_volatility_shocks) > 10000:
+            raise ValueError("TUI stress grid limit: 10,000 cells")
+        if (
+            len(self.scenarios) > 100
+            or len(self.spot_shocks) * len(self.rate_shocks) > 100
+        ):
+            raise ValueError("TUI scenario limit: 100")
+        if len({scenario.name for scenario in self.scenarios}) != len(self.scenarios):
+            raise ValueError("distinct scenario names required")
 
 
 @dataclass(frozen=True)

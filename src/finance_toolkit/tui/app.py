@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from finance_toolkit.tui.config import (
     InstrumentConfig,
+    ScenarioConfig,
     TradeConfig,
     Workspace,
     decode_workspace,
@@ -15,6 +16,7 @@ from finance_toolkit.tui.config import (
 )
 from finance_toolkit.tui.forms import Field, form_fields, format_field, parse_field
 from finance_toolkit.tui.jobs import Jobs
+from finance_toolkit.tui.risk_service import RiskResult, run_risk
 from finance_toolkit.tui.services import PortfolioResult, position_rows, run_portfolio
 
 if TYPE_CHECKING:
@@ -111,14 +113,54 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     "weiterrechnen; bis zu seinem Ende bleibt ein neuer Lauf\n"
                     "gesperrt.\n"
                     "Keine Prozentanzeige ohne messbaren Fortschritt.\n\n"
-                    "Portfolioformulare sind verfügbar; weitere Fachansichten\n"
-                    "folgen in D–G. Escape schließt diese Hilfe.",
+                    "Portfolio/Risiko sind verfügbar; weitere Fachansichten\n"
+                    "folgen in E–G. Escape schließt diese Hilfe.",
                     markup=False,
                 )
                 yield Button("Zurück", id="close-help")
 
         def on_button_pressed(self, event: Button.Pressed) -> None:
             self.dismiss()
+
+    class ScenarioEditor(ModalScreen[ScenarioConfig | None]):
+        BINDINGS = [("escape", "dismiss(None)", "Abbrechen")]
+
+        def __init__(self, workspace: Workspace) -> None:
+            super().__init__(id="scenario-editor")
+            self.workspace = workspace
+
+        def compose(self) -> ComposeResult:
+            with VerticalScroll():
+                yield from form_widgets(ScenarioConfig(), "scenario", set())
+                yield Static("", id="scenario-error", markup=False)
+                yield Button("Szenario übernehmen", id="save-scenario")
+                yield Button("Abbrechen", id="cancel-scenario")
+
+        def on_input_changed(self, event: Input.Changed) -> None:
+            event.stop()
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            event.stop()
+            if event.button.id == "cancel-scenario":
+                self.dismiss(None)
+                return
+            try:
+                payload = encode_workspace(self.workspace)
+                payload["risk"]["scenarios"] = [
+                    {
+                        field.name: parse_field(
+                            self.query_one(f"#scenario-{field.name}", Input).value,
+                            field.annotation,
+                            percent=field.percent,
+                        )
+                        for field in form_fields(ScenarioConfig)
+                    }
+                ]
+                scenario = decode_workspace(payload).risk.scenarios[0]
+            except ValueError as error:
+                self.query_one("#scenario-error", Static).update(str(error))
+            else:
+                self.dismiss(scenario)
 
     class FinanceApp(App[None]):
         TITLE = "FinanceToolkit"
@@ -154,6 +196,7 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             super().__init__()
             self.workspace = Workspace()
             self.jobs = Jobs(work)
+            self.injected_work = work if work is not run_portfolio else None
             self.input_error = ""
             self.ready = False
             self.status_view = Static("idle – bereit", id="status", markup=False)
@@ -219,8 +262,37 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                         "Vollständige Arrays bleiben im Ergebnis."
                     )
                     yield DataTable(id="wealth-table")
+                with VerticalScroll(id="risk"):
+                    yield Static(
+                        "Risiko: expliziter Snapshot, gleiche Trades/Cashflows."
+                    )
+                    for field in form_fields(
+                        type(self.workspace.risk), exclude={"scenarios"}
+                    ):
+                        self.field_map[f"risk-{field.name}"] = ("risk", field)
+                    yield from form_widgets(self.workspace.risk, "risk", {"scenarios"})
+                    yield Static(
+                        "Ohne eigene Namen: Spot×Zins-Kombinationen; "
+                        "eigene Szenarien ersetzen diese Liste."
+                    )
+                    yield DataTable(id="scenario-list", cursor_type="row")
+                    yield Button("Benanntes Szenario hinzufügen", id="add-scenario")
+                    yield Button("Ausgewähltes Szenario löschen", id="delete-scenario")
+                    yield Button("Risiko/Stress rechnen", id="run-risk")
+                    yield Static(
+                        "Noch kein Risikoergebnis", id="risk-summary", markup=False
+                    )
+                    yield Static("", id="exposure-error", markup=False)
+                    yield DataTable(id="asset-greeks")
+                    yield DataTable(id="position-greeks")
+                    yield Static("Hypothetische Neubewertung ohne Wahrscheinlichkeit.")
+                    yield DataTable(id="stress-results")
+                    yield Static(
+                        "Stressraster: Zeilen ΔVol (Prozentpunkte), "
+                        "Spalten ΔSpot (%), P&L (Währung); maximal 50×50 Zellen."
+                    )
+                    yield DataTable(id="stress-grid")
                 for page, label, issue in (
-                    ("risk", "Risiko / Stress", 77),
                     ("strategy", "Strategien / Hedging", 78),
                     ("index", "Indizes / Daten", 79),
                     ("workspace", "Workspace / Export", 80),
@@ -240,6 +312,7 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             self.query_one("#run", Button).focus()
             self.check_size()
             self.refresh_trades()
+            self.refresh_scenarios()
 
         def on_resize(self, event: Resize) -> None:
             if self.ready:
@@ -269,6 +342,10 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             try:
                 if self.input_error:
                     raise ValueError(self.input_error)
+                page = self.query_one("#pages", ContentSwitcher).current
+                self.jobs.work = self.injected_work or (
+                    run_risk if page == "risk" else run_portfolio
+                )
                 self.jobs.start(self.workspace)
             except ValueError as error:
                 self.status_view.update(str(error))
@@ -276,8 +353,18 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                 self.query_one("#portfolio-summary", Static).update(
                     f"Lauf {self.jobs.run_id} gestartet – noch kein aktuelles Ergebnis."
                 )
-                for selector in ("#positions", "#wealth-table"):
+                for selector in (
+                    "#positions",
+                    "#wealth-table",
+                    "#asset-greeks",
+                    "#position-greeks",
+                    "#stress-results",
+                    "#stress-grid",
+                ):
                     self.query_one(selector, DataTable).clear()
+                self.query_one("#risk-summary", Static).update(
+                    "Noch kein aktuelles Risikoergebnis."
+                )
                 self.query_one("#wealth-line", Sparkline).data = []
                 self.poll_jobs()
 
@@ -301,6 +388,7 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
             if self.jobs.state == "succeeded" and self.rendered_run != self.jobs.run_id:
                 self.rendered_run = self.jobs.run_id
                 self.render_portfolio()
+                self.render_risk()
 
         def on_input_changed(self, event: Input.Changed) -> None:
             key = event.input.id or ""
@@ -400,6 +488,8 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
 
         def render_portfolio(self) -> None:
             result = self.jobs.result
+            if isinstance(result, RiskResult):
+                result = result.base
             if not isinstance(result, PortfolioResult):
                 return
             path, step = self.selected_path, self.selected_time
@@ -483,9 +573,156 @@ def create_app(*, work: Callable[[Workspace], object] = run_portfolio) -> App[No
                     )
                 )
 
+        def refresh_scenarios(self) -> None:
+            table = self.query_one("#scenario-list", DataTable)
+            table.clear(columns=True)
+            table.add_columns(
+                "Name", "ΔSpot (dezimal)", "ΔVol (dezimal)", "ΔZins (dezimal)"
+            )
+            for scenario in self.workspace.risk.scenarios:
+                table.add_row(
+                    scenario.name,
+                    str(scenario.spot_shocks),
+                    str(scenario.volatility_shocks),
+                    str(scenario.rate_shock),
+                )
+
+        def add_scenario(self) -> None:
+            if self.input_error:
+                self.status_view.update(self.input_error)
+                return
+
+            def saved(scenario: ScenarioConfig | None) -> None:
+                if scenario is None:
+                    return
+                candidate = encode_workspace(self.workspace)
+                candidate["risk"]["scenarios"].append(asdict(scenario))
+                try:
+                    workspace = decode_workspace(candidate)
+                except ValueError as error:
+                    self.status_view.update(str(error))
+                    return
+                self.draft = candidate
+                self.workspace = workspace
+                self.jobs.changed()
+                self.refresh_scenarios()
+                self.poll_jobs()
+
+            self.push_screen(ScenarioEditor(self.workspace), saved)
+
+        def render_risk(self) -> None:
+            result = self.jobs.result
+            if not isinstance(result, RiskResult):
+                return
+            risk = result.base.analysis.risk
+            currency = result.base.config.currency
+            self.query_one("#risk-summary", Static).update(
+                f"Snapshot: Pfad {result.base.config.risk.path}, "
+                f"t={result.snapshot.time:.8g} Jahre; "
+                f"Cash {result.snapshot.cash:.8g} {currency}\n"
+                f"Terminaler aggregierter Verlust: VaR {risk.confidence:.1%} "
+                f"{risk.value_at_risk:.8g}; "
+                f"ES {risk.expected_shortfall:.8g} {currency}\n"
+                "Stress-P&L ist hypothetisch und besitzt keine Konfidenz."
+            )
+            self.query_one("#exposure-error", Static).update(
+                "Greeks undefiniert: " + result.exposure_error
+                if result.exposure_error
+                else ""
+            )
+            assets = self.query_one("#asset-greeks", DataTable)
+            assets.clear(columns=True)
+            assets.add_columns(
+                "Asset", "Delta (Underlying)", "Gamma (Underlying/Währung)"
+            )
+            positions = self.query_one("#position-greeks", DataTable)
+            positions.clear(columns=True)
+            positions.add_columns(
+                "Position",
+                "Menge",
+                "Multiplikator",
+                "Delta",
+                "Gamma",
+                f"Vega {currency}/Vol-pp",
+                f"Rho {currency}/Zins-pp",
+                f"Theta {currency}/Jahr",
+                f"DV01 {currency}/bp",
+                "Konvexität Jahre²",
+            )
+            exposures = result.exposures
+            if exposures is not None:
+                for asset, (delta, gamma) in enumerate(
+                    zip(exposures.asset_delta, exposures.asset_gamma, strict=True)
+                ):
+                    assets.add_row(str(asset), str(delta), str(gamma))
+                for index, instrument in enumerate(result.snapshot.instruments):
+                    positions.add_row(
+                        *(
+                            str(x)
+                            for x in (
+                                index,
+                                result.base.portfolio.quantities[
+                                    result.base.config.risk.time_index, index
+                                ],
+                                getattr(instrument, "multiplier", 1),
+                                exposures.position_delta[index],
+                                exposures.position_gamma[index],
+                                exposures.position_vega[index] * 0.01,
+                                exposures.position_rho[index] * 0.01,
+                                exposures.position_theta[index],
+                                exposures.position_dv01[index],
+                                exposures.bond_convexity[index],
+                            )
+                        )
+                    )
+            scenarios = self.query_one("#stress-results", DataTable)
+            scenarios.clear(columns=True)
+            scenarios.add_columns(
+                "Szenario",
+                f"Basis {currency}",
+                f"Stress {currency}",
+                f"P&L {currency}",
+                f"Cash {currency}",
+                "Positions-P&L",
+            )
+            for scenario in result.scenarios:
+                scenarios.add_row(
+                    scenario.name,
+                    str(scenario.base_value),
+                    str(scenario.stressed_value),
+                    str(scenario.total_pnl),
+                    str(scenario.cash),
+                    str(scenario.position_pnl.tolist()),
+                )
+            grid = self.query_one("#stress-grid", DataTable)
+            grid.clear(columns=True)
+            grid.add_columns(
+                "ΔVol (pp)",
+                *(
+                    f"ΔSpot {shock:.1%}"
+                    for shock in result.base.config.risk.spot_shocks[:50]
+                ),
+            )
+            for shock, row in zip(
+                result.base.config.risk.grid_volatility_shocks[:50],
+                result.grid[:50],
+                strict=True,
+            ):
+                grid.add_row(str(shock * 100), *(str(value) for value in row[:50]))
+
         async def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id in ("run", "run-portfolio"):
+            if event.button.id in ("run", "run-portfolio", "run-risk"):
                 self.action_calculate()
+            elif event.button.id == "add-scenario":
+                self.add_scenario()
+            elif event.button.id == "delete-scenario":
+                if not self.input_error and self.workspace.risk.scenarios:
+                    index = self.query_one("#scenario-list", DataTable).cursor_row
+                    del self.draft["risk"]["scenarios"][index]
+                    self.workspace = decode_workspace(self.draft)
+                    self.jobs.changed()
+                    self.refresh_scenarios()
+                    self.poll_jobs()
             elif event.button.id in ("add-trade", "edit-trade"):
                 self.edit_trade(add=event.button.id == "add-trade")
             elif event.button.id == "delete-trade":
