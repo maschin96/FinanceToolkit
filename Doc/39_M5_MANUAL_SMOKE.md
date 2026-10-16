@@ -1,11 +1,13 @@
 # M5 – Manuelle Terminalprüfung vor v0.4.0 (#81)
 
-**Status: ausstehend.** Diese Liste ist eine Prüfanleitung, kein bestandener
-Nachweis. Der Eigentümer hat die manuelle macOS-/Linux-Abnahme am 2026-10-15
-bestätigt. Automatisierte Pilot-/Wheeltests ersetzen sie nicht. Die verfügbare
-Computersteuerung verweigert den Zugriff auf die Terminal-App; Codex hat daher
-keine manuelle Bedienung bestätigt. Windows wurde nicht manuell geprüft und
-wird nicht als unterstützte Terminalplattform zugesagt.
+**Status: vom Eigentümer am 2026-10-16 als durchgeführt bestätigt.**
+Der Eigentümer hat im Projektchat erklärt: „Ich habe die manuelle Abnahme
+durchgeführt.“ und die Integration des Milestone-Branches nach main beauftragt.
+Diese Bestätigung hebt das bisher offene manuelle Freigabegate auf. Codex hat
+keine eigene manuelle Bedienung durchgeführt. Einzelne Terminal-/OS-Versionen,
+Prüfzeitpunkte und Messprotokolle wurden nicht mitgeteilt; sie werden hier nicht
+nachträglich erfunden. Die folgende Anleitung bleibt als reproduzierbarer
+Prüfumfang erhalten. Eine Windows-Supportzusage wird daraus nicht abgeleitet.
 
 ## Vorbereitung
 
@@ -68,17 +70,19 @@ uv run --no-sync python -c 'from time import sleep; from finance_toolkit.tui.app
 
 ## Ergebnisprotokoll
 
-Die vier Zeilen erst nach tatsächlicher Bedienung ausfüllen. Pro Zeile die
+Die folgenden Detailzeilen wurden nicht separat übermittelt; maßgeblich für die
+Integrationsfreigabe ist die oben dokumentierte Eigentümerbestätigung.
+Die vier Zeilen nur anhand tatsächlich vorliegender Details ausfüllen. Pro Zeile die
 Schritte 1–6 mit bestanden/Fehler und Beleg beschreiben; Probleme vor Release
 beheben und den betroffenen Umfang erneut prüfen. Keine pauschale Freigabe aus
 einer einzigen Startansicht ableiten.
 
 | System | Größe | OS / Terminal / Python / Textual | Commit | Schritte 1–6 / Prüfer / Datum |
 | --- | --- | --- | --- | --- |
-| macOS | 80×24 | ausstehend | ausstehend | ausstehend |
-| macOS | 120×40 | ausstehend | ausstehend | ausstehend |
-| Linux | 80×24 | ausstehend | ausstehend | ausstehend |
-| Linux | 120×40 | ausstehend | ausstehend | ausstehend |
+| macOS | 80×24 | nicht mitgeteilt | nicht mitgeteilt | Eigentümerbestätigung siehe oben |
+| macOS | 120×40 | nicht mitgeteilt | nicht mitgeteilt | Eigentümerbestätigung siehe oben |
+| Linux | 80×24 | nicht mitgeteilt | nicht mitgeteilt | Eigentümerbestätigung siehe oben |
+| Linux | 120×40 | nicht mitgeteilt | nicht mitgeteilt | Eigentümerbestätigung siehe oben |
 
 Nach diesen Nachweisen: main erneut in M5 übernehmen, vollständige CI am
 kombinierten Stand prüfen, Review-Anmerkungen klären, Release-PR nach main.
@@ -89,5 +93,4 @@ schließen; siehe [Release-Prozess](09_RELEASE_PROCESS.md).
 
 Befund vom 2026-10-15: Der Nutzer meldet funktionslose Ctrl+1…6 im
 macOS-Terminal. #95 korrigiert den Bedienweg; dieser Bericht ist keine bestandene
-manuelle Wiederholungsprüfung. Die vier Zeilen bleiben bis tatsächlicher
-Bedienung des korrigierten Commits offen.
+manuelle Wiederholungsprüfung. Die erneute manuelle Abnahme wurde am 2026-10-16 vom Eigentümer bestätigt.

@@ -72,8 +72,9 @@ beachten. [M4-Verifikation](Doc/30_M4_VERIFICATION.md) und
 M5 ergänzt die optionale **Textual-TUI**: Simulation und Portfolios konfigurieren,
 Risiken/Stress prüfen, Strategien und Hedges vergleichen sowie eigene Indizes und
 reproduzierbare Exporte bedienen. Die Pflichtpakete #74–#80 sind integriert.
-**v0.4.0 ist noch nicht veröffentlicht**: Die manuellen Tastaturprüfungen unter
-macOS/Linux stehen vor der Freigabe aus. Stabiles Release bleibt v0.3.1.
+**v0.4.0 ist noch nicht veröffentlicht**: Der Eigentümer hat die manuelle Abnahme am 2026-10-16 bestätigt und die
+Integration nach main freigegeben. Stabiles veröffentlichtes Release bleibt bis
+zur Veröffentlichung von v0.4.0 weiterhin v0.3.1.
 [Verifikationsstand](Doc/38_M5_TUI_VERIFICATION.md) ·
 [manuelle Prüfanleitung](Doc/39_M5_MANUAL_SMOKE.md) ·
 [GitHub-Milestone](https://github.com/maschin96/FinanceToolkit/milestone/6).
