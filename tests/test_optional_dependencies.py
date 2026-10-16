@@ -13,7 +13,8 @@ IMPORT_GUARD = textwrap.dedent("""
 
     class NoOptionalImports(importlib.abc.MetaPathFinder):
         def find_spec(self, fullname, path=None, target=None):
-            if fullname.split('.')[0] in {'matplotlib', 'pandas', 'yfinance'}:
+            optional = {'matplotlib', 'pandas', 'yfinance', 'textual'}
+            if fullname.split('.')[0] in optional:
                 raise AssertionError(f'Unexpected optional dependency: {fullname}')
 
     sys.meta_path.insert(0, NoOptionalImports())

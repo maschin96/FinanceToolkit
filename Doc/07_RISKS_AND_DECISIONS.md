@@ -221,3 +221,41 @@ laufenden Thread-Kernaufruf jedoch nicht zwingend sofort. Begrenzte Jobs,
 vollständige Exportwerte und versionierte Konfigurationen sind Pflicht.
 Diese Architektur ist geplant, noch nicht implementiert; M4/v0.3.1 muss vor
 Arbeitsbeginn vollständig abgeschlossen und stabil in main sein.
+
+## ADR – M5-Paket A: Konfiguration und Einstieg (2026-10-14, #74)
+
+M4/v0.3.1 ist abgeschlossen (#66); Planung ist durch #82 integriert. M5 beginnt
+auf codex/milestone-m5 vom stabilen main. Textual 8.2.8 wird nach Prüfung der
+Python-/Lizenzmetadaten als exakt gelocktes optionales Extra aufgenommen.
+Der Kern bleibt ohne Textual-Import. Prozentumrechnung erfolgt nur an explizit
+beschrifteten Formgrenzen, persistierte Konfigurationen enthalten Dezimalwerte.
+
+Schema v1 verwendet eingefrorene Dataclasses und Tupel, unbekannte Felder und
+Typen werden abgelehnt. Der erste Service erstellt einen eigenen Snapshot und
+nutzt öffentliche Kern-APIs. Preiszellen sind im UI auf 5 Millionen begrenzt,
+ohne Laufzeitgarantie; Kern-APIs bleiben unverändert. Vollständige
+[Verträge und Standards](31_M5_TUI_CONTRACTS.md). Navigation/Jobs und alle
+weiteren Bedienabläufe folgen in #75–#80, keine vollständige UI-Freigabe.
+
+
+## ADR – M5: Jobs, Ergebnispräzision und Freigabe (2026-10-15, #80/#81)
+
+Ein begrenzter ThreadPoolExecutor hält die TUI bedienbar; Kernaufrufe werden
+nicht erzwungen beendet. Lauf-ID und Eingaberevision verhindern den Export
+veralteter/fehlgeschlagener Rechenstände. Formulare zeigen beschriftete
+Prozentwerte, speichern jedoch dezimale Konfigurationen; Exporte verwenden
+vollständige Arrays unabhängig von der begrenzten Terminaldarstellung.
+Der Dateiexport wird vollständig vorbereitet und seine kurze Veröffentlichung
+mit einem Abbruch-Token serialisiert. Ein akzeptierter Abbruch vor dieser Grenze
+veröffentlicht nichts; ein bereits veröffentlichter Export bleibt erfolgreich.
+Ein behandelter Austauschfehler stellt das ursprüngliche Ziel wieder her.
+Keine Garantie gegen Stromausfall zwischen Verzeichnisumbenennungen.
+
+M5 fügt Adapter und keine neuen Finanzmodelle/Simulationsverfahren hinzu.
+Vorhandene wissenschaftliche Referenzen einschließlich Hedgekonvergenz bleiben
+verbindlich; API-Gleichheit allein ist kein fachlicher Referenzbeweis.
+Kern/TUI/Vollprofil besitzen explizite Skiplisten. Automatisierte Headless- und
+Wheeltests ersetzen die in #81 verlangte manuelle Terminalabnahme nicht.
+Der Eigentümer hat dieses Gate am 2026-10-15 ausdrücklich beibehalten.
+Bis zu dessen Nachweis verbleiben M5, Tag und Veröffentlichung offen; main
+enthält weiterhin das freigegebene v0.3.1. Kein unabhängiger Reviewer verfügbar.

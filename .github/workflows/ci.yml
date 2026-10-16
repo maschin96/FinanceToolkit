@@ -33,7 +33,7 @@ jobs:
           version: '0.11.23'
           enable-cache: false
       - name: Install locked environment
-        run: uv sync --locked --extra plots --extra yahoo --python '${{ matrix.python-version }}'
+        run: uv sync --locked --all-extras --python '${{ matrix.python-version }}'
       - name: Tests
         run: |
           uv run --no-sync python -m pytest --junitxml=/tmp/finance-full-tests.xml
@@ -68,6 +68,8 @@ jobs:
           cp -R tests /tmp/finance-wheel-tests
           cd /tmp
           /tmp/finance-wheel/bin/python -m pytest finance-wheel-tests
+          /tmp/finance-wheel/bin/python -m finance_toolkit.tui --help
+          /tmp/finance-wheel/bin/finance-toolkit-tui --help
           /tmp/finance-wheel/bin/python -m finance_toolkit.examples --paths 20 --output /tmp/wheel-m1-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.risk_lab --paths 20 --output /tmp/wheel-m2-demo --plot
           /tmp/finance-wheel/bin/python -m finance_toolkit.hedge_lab --paths 20 --steps 16 --output /tmp/wheel-m3-hedge --plot
@@ -94,12 +96,12 @@ jobs:
         run: |
           uv run --no-sync python - <<'PY'
           from importlib.util import find_spec
-          for module in ('matplotlib', 'pandas', 'yfinance'):
+          for module in ('matplotlib', 'pandas', 'yfinance', 'textual'):
               assert find_spec(module) is None, f'Unexpected optional dependency: {module}'
           PY
       - name: Numerical suite and guarded offline CLIs
         run: uv run --no-sync python -m pytest --junitxml=/tmp/finance-core-tests.xml
-      - name: Verify only the six optional diagram tests were skipped
+      - name: Verify only named optional UI and diagram tests were skipped
         run: |
           uv run --no-sync python - <<'PY'
           from xml.etree import ElementTree
@@ -113,6 +115,66 @@ jobs:
               'test_optional_charts',
               'test_heatmap_contains_numerical_grid',
               'test_heatmap_does_not_change_global_backend',
+              'test_optional_workspace_plot',
+              'test_keyboard_navigation_help_and_resize[size0]',
+              'test_keyboard_navigation_help_and_resize[size1]',
+              'test_navigation_without_control_digits[size0]',
+              'test_navigation_without_control_digits[size1]',
+              'test_ui_remains_responsive_and_cancelled_result_is_not_published',
+              'test_ui_invalid_edit_stale_results_and_failure_diagnostics',
+              'test_ui_quit_during_active_worker',
+              'test_keyboard_edit_run_select_and_trade_crud',
+              'test_invalid_form_edit_remains_blocking_until_corrected',
+              'test_headless_risk_form_snapshot_and_terminal_grid',
+              'test_headless_strategy_and_hedge_controls',
+              'test_headless_offline_data_preview_and_index',
+              'test_headless_online_action_and_cache_miss_remain_explicit',
+              'test_headless_workspace_save_load_rerun_and_export',
+          }
+          assert len(skipped) == len(expected) and set(skipped) == expected, skipped
+          PY
+
+  tui:
+    name: TUI profile (Python 3.13, no plots/yahoo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: false
+      - name: Install locked TUI without plots or yahoo
+        run: uv sync --locked --extra tui
+      - name: Verify optional data and plot dependencies are absent
+        run: |
+          uv run --no-sync python - <<'PY'
+          from importlib.util import find_spec
+          assert find_spec('textual') is not None
+          for name in ('matplotlib', 'pandas', 'yfinance'):
+              assert find_spec(name) is None, name
+          PY
+      - name: Test numerical and headless UI behavior
+        run: |
+          uv run --no-sync python -m pytest --junitxml=/tmp/finance-tui-tests.xml
+          uv run --no-sync python - <<'PY'
+          from xml.etree import ElementTree
+          report = ElementTree.parse('/tmp/finance-tui-tests.xml')
+          skipped = [case.get('name') for case in report.findall('.//testcase')
+                     if case.find('skipped') is not None]
+          expected = {
+              'test_optional_plot_adapter_outputs_png',
+              'test_optional_plot_uses_same_results',
+              'test_optional_index_plot',
+              'test_optional_charts',
+              'test_heatmap_contains_numerical_grid',
+              'test_heatmap_does_not_change_global_backend',
+              'test_optional_workspace_plot',
           }
           assert len(skipped) == len(expected) and set(skipped) == expected, skipped
           PY

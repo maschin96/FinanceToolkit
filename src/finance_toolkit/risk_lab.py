@@ -249,11 +249,20 @@ def _csv(path: Path, header: Sequence[str], rows: Iterable[Sequence[object]]) ->
         writer.writerows(rows)
 
 
-def write_risk_lab(report: RiskLab, output: Path) -> None:
+def write_risk_lab(
+    report: RiskLab,
+    output: Path,
+    *,
+    grid_snapshot: PortfolioSnapshot | None = None,
+    spot_shocks: Sequence[float] = (-0.3, -0.15, 0, 0.15, 0.3),
+    volatility_shocks: Sequence[float] = (0, 0.05, 0.1),
+) -> None:
     """Write traceable monetary/relative paths, ledger, exposures and stress values.
 
     No optional plot imports. Overwrites known files in output, creates directory.
     Summary JSON contains the configuration, units and portfolio risk metrics.
+    Optional grid inputs support caller-selected TUI snapshots; defaults retain
+    the existing lab contract. Undefined relative returns are exported as null.
     """
     output.mkdir(parents=True, exist_ok=True)
     (output / "summary.json").write_text(
@@ -281,7 +290,9 @@ def write_risk_lab(report: RiskLab, output: Path) -> None:
                         float(time),
                         float(wealth[path, index]),
                         float(wealth[path, index] - result.initial_cash),
-                        float(wealth[path, index] / result.initial_cash - 1),
+                        float(wealth[path, index] / result.initial_cash - 1)
+                        if result.initial_cash > 0
+                        else None,
                         float(dd[path, index]) if dd is not None else None,
                         float(result.cash[path, index]),
                         float(
@@ -424,8 +435,11 @@ def write_risk_lab(report: RiskLab, output: Path) -> None:
         ["portfolio", "scenario", "position", "base_value", "stressed_value", "pnl"],
         stress_rows(),
     )
-    ds, dv = [-0.3, -0.15, 0, 0.15, 0.3], [0, 0.05, 0.1]
-    grid = stress_grid(report.snapshots["protective_put"], ds, dv)
+    ds, dv = spot_shocks, volatility_shocks
+    snapshot = (
+        report.snapshots["protective_put"] if grid_snapshot is None else grid_snapshot
+    )
+    grid = stress_grid(snapshot, ds, dv)
     _csv(
         output / "stress_grid.csv",
         ["spot_shock", "volatility_shock", "pnl"],
