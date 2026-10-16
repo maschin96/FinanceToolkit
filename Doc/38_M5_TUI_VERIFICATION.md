@@ -1,10 +1,11 @@
 # M5 – Gesamtverifikation und Freigabestand (#81)
 
-Stand 2026-10-15. **Noch kein Release v0.4.0.** Alle funktionalen Pflichtpakete
-A–G sind integriert; manuelle Terminal-Smokes stehen aus. Der Eigentümer hat
-dieses Gate ausdrücklich beibehalten. #81 und M5 bleiben offen, main enthält
-weiterhin das freigegebene M4/v0.3.1. Der Verifikationsbranch bereitet Paketversion
-0.4.0 vor, veröffentlicht aber weder Tag noch Release. Keine PyPI-Veröffentlichung.
+Stand 2026-10-16. **Noch kein veröffentlichtes Release v0.4.0.** Alle funktionalen
+Pflichtpakete A–G sind integriert. Der Eigentümer hat die manuelle Abnahme am
+2026-10-16 bestätigt und die Integration nach main beauftragt. Details zur
+Bestätigung und deren Dokumentationsumfang stehen im
+[Abnahmeprotokoll](39_M5_MANUAL_SMOKE.md). #81 und M5 bleiben bis zum vollständigen
+Veröffentlichungsabschluss offen. Keine PyPI-Veröffentlichung.
 
 ## Implementierung und TDD-Nachweise
 
@@ -84,11 +85,9 @@ Terminaltabellen begrenzt angezeigt.
 
 ## Verbleibende Freigabeschritte
 
-1. Die [manuelle Prüfanleitung](39_M5_MANUAL_SMOKE.md) unter macOS und Linux
-   jeweils bei 80×24 und 120×40 tatsächlich durchführen und protokollieren.
-   Die Computersteuerung sperrt den Zugriff auf die Terminal-App; deshalb ist
-   dieser Nachweis derzeit nicht erbracht. Automatisierte Tests zählen nicht
-   als manuelle Prüfung.
+1. Manuelle Abnahme am 2026-10-16 vom Eigentümer als durchgeführt bestätigt;
+   [Bestätigung und Prüfanleitung](39_M5_MANUAL_SMOKE.md). Keine eigene manuelle
+   Prüfung durch Codex und keine erfundenen Umgebungsdetails.
 2. Nach ggf. erforderlichen Korrekturen main erneut in M5 übernehmen und die
    resultierende CI/Reviews prüfen. Abgleich am 2026-10-15: main
    `0b39f06d32b368d10c0c2db656e56c7b618d065f` ist bereits Vorfahr von M5
@@ -111,5 +110,6 @@ bedienbare Menüleiste und F3…F8. Zwei neue UI-Regressionsfälle erhöhen den
 Vollumfang auf 497 Tests; Kern 476 bestanden/21 benannte Skips, TUI 490
 bestanden/sieben Diagramm-Skips. Die beiden realen POSIX-Starttests prüfen nun
 auch F3…F8 für jede Seite. Dies ersetzt keine manuelle Wiederholungsprüfung;
-alle vier Abnahmezeilen bleiben offen. Die Tabelle oben dokumentiert den
+die Eigentümerbestätigung der manuellen Abnahme folgte am 2026-10-16.
+Die Tabelle oben dokumentiert den
 vorherigen H-Vorbereitungsstand mit 495 Tests.

@@ -15,7 +15,8 @@
 - Versionierte Konfigurationen, exakte CSV/JSON-Exporte mit Parametern, Einheiten,
   Versionen/Hashes, Überschreibschutz und Abbruch-/Fehlerbehandlung (#80).
 - Voll-, Kern- und TUI-Installationsprofile mit expliziten Skiplisten und
-  isolierten Wheeltests; manuelle Terminalabnahme vor Release noch offen (#81).
+  isolierten Wheeltests; manuelle Abnahme vom Eigentümer am 2026-10-16
+  bestätigt (#81).
 
 Keine neuen Finanzmodelle oder numerischen Diskretisierungen. Keine empirische
 Marktvalidierung, Windows-Supportzusage oder PyPI-Veröffentlichung.

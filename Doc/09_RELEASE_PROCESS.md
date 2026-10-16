@@ -84,3 +84,10 @@ Der Eigentümer behält die manuellen macOS-/Linux-Smokes ausdrücklich bei.
 Vor dessen Abschluss keinen Release-PR nach main, Tag oder Veröffentlichung
 vornehmen. Der H-Vorbereitungs-PR zielt weiterhin nach codex/milestone-m5 und
 verwendet Refs #81; das Releaseissue bleibt offen.
+
+
+Stand 2026-10-16: Der Eigentümer hat die manuelle Abnahme als durchgeführt
+bestätigt und die Integration von M5 nach main beauftragt. Das manuelle Gate
+ist damit für die Integration freigegeben; siehe [Bestätigung](39_M5_MANUAL_SMOKE.md).
+Die Veröffentlichung von Tag/Artefakten und das Schließen von #81/M5 bleiben
+eigene nachgelagerte Schritte nach erfolgreicher main-CI.
